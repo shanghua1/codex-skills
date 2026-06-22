@@ -1,0 +1,4 @@
+interface:
+  display_name: "KubeJS Modding"
+  short_description: "Teach Codex how KubeJS works, where scripts belong, and how to edit modpack logic safely."
+  default_prompt: "Use this skill to understand and modify a Minecraft KubeJS project with KubeJS-specific patterns."
