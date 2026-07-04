@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curios Forge"
+  short_description: "Forge Curios slots, items, data, and debugging"
+  default_prompt: "Use $curios-forge to add or debug a Curios slot, item, or integration in this Forge mod."
