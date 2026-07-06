@@ -1,0 +1,4 @@
+interface:
+  display_name: "交互式学习应用构建器"
+  short_description: "构建带 AI 辅助的交互式学习网页应用，支持任意题材"
+  default_prompt: "帮我做一个 [主题] 的交互式学习应用"

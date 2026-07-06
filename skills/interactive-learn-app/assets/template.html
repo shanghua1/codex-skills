@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Forge 模组开发 — 交互式学习</title>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    :root {
+        --bg:#faf8f5;--bg-card:#fff;--bg-code:#f5f0eb;--text:#3d3832;--text-muted:#8a7e72;
+        --accent:#5b8a72;--accent-hover:#4a7561;--accent2:#8b6bb5;--accent3:#c75c5c;
+        --gold:#b8860b;--green:#5b8a72;--border:#e8e0d8;--border-light:#f0ebe5;
+        --rose:#d4868a;--lavender:#9b8ec4;--sage:#7ca68e;--amber:#c49a2a;--coral:#c7785c;
+        --sky:#6a9bbe;--shadow:rgba(60,50,40,0.06);
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);line-height:1.9;font-size:16px}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:260px;background:var(--bg-card);border-right:1.5px solid var(--border);padding:1.5rem;overflow-y:auto;position:sticky;top:0;height:100vh;flex-shrink:0}
+    .main{flex:1;padding:2rem 2.5rem;max-width:780px}
+    .qa-panel{width:420px;background:var(--bg-card);border-left:1.5px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:75vh;flex-shrink:0}
+    .qa-header{padding:0.8rem 1.2rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .qa-header-title{font-size:0.95rem;font-weight:600;color:var(--accent2)}
+    .qa-header-btns{display:flex;gap:0.3rem}
+    .qa-header-btn{font-family:inherit;font-size:0.75rem;padding:0.25rem 0.6rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text-muted);cursor:pointer;transition:all 0.15s}
+    .qa-header-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+    .qa-messages{flex:1;overflow-y:auto;padding:1rem 1.2rem;display:flex;flex-direction:column;gap:0.8rem}
+    .qa-msg{padding:0.7rem 1rem;border-radius:10px;font-size:0.88rem;line-height:1.7;max-width:95%;overflow-wrap:anywhere;word-break:break-word}
+    .qa-msg.user{background:rgba(91,138,114,0.08);align-self:flex-end;border:1px solid rgba(91,138,114,0.15)}
+    .qa-msg.ai{background:var(--bg);align-self:flex-start;border:1px solid var(--border-light)}
+    .qa-msg p{margin:0.3rem 0}.qa-msg h4{color:var(--accent);font-size:0.92rem;margin:0.6rem 0 0.2rem;font-weight:600}
+    .qa-msg ul{padding-left:1.2rem;margin:0.2rem 0}.qa-msg li{margin:0.15rem 0}
+    .qa-msg code{font-size:0.82rem;word-break:break-all}
+    .qa-msg pre{margin:0.4rem 0;font-size:0.82rem;white-space:pre-wrap;word-break:break-all;word-wrap:break-word}
+    .qa-msg pre code{white-space:pre-wrap;word-break:break-all;overflow-wrap:anywhere;display:block;max-width:100%}
+    .hl-path{color:#c49a2a;font-weight:500}
+    .qa-msg pre code span{word-break:break-all;overflow-wrap:anywhere}
+    .qa-msg pre{font-family:'JetBrains Mono',monospace;line-height:1.7}
+    .qa-msg table{width:100%;border-collapse:collapse;font-size:0.82rem;margin:0.4rem 0}
+    .qa-msg th,.qa-msg td{padding:0.3rem 0.5rem;border:1px solid var(--border);text-align:left;word-break:break-word}
+    .qa-msg th{background:rgba(91,138,114,0.06);color:var(--accent)}
+    .qa-input-row{display:flex;gap:0.5rem;padding:0.8rem 1rem;border-top:1px solid var(--border)}
+    .qa-input{flex:1;padding:0.5rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.88rem;background:var(--bg);color:var(--text);outline:none}
+    .qa-input:focus{border-color:var(--accent2)}
+    .qa-send{padding:0.5rem 1rem;background:var(--accent2);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.88rem;font-weight:500}
+    .qa-send:hover{opacity:0.85}
+    .qa-send:disabled{opacity:0.5;cursor:not-allowed}
+    .qa-quick{display:flex;flex-wrap:wrap;gap:0.4rem;padding:0.5rem 1rem;border-top:1px solid var(--border-light)}
+    .qa-quick-btn{font-family:inherit;font-size:0.78rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:14px;background:var(--bg);color:var(--text-muted);cursor:pointer;transition:all 0.15s}
+    .qa-quick-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+    .qa-toggle{display:none;position:fixed;bottom:1rem;right:1rem;background:var(--accent2);color:#fff;border:none;border-radius:50%;width:48px;height:48px;font-size:1.3rem;cursor:pointer;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+    @media(max-width:1300px){.qa-panel{width:340px}}
+    @media(max-width:1100px){.qa-panel{display:none}.qa-toggle{display:block}}
+    @media(max-width:800px){.sidebar{display:none}.main{padding:1rem}}
+    .sidebar h1{font-size:1.2rem;color:var(--accent);margin-bottom:0.3rem}
+    .sidebar .subtitle{font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem}
+    .sidebar .section-title{font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:1.2rem 0 0.4rem}
+    .lesson-btn{display:block;width:100%;text-align:left;padding:0.5rem 0.8rem;border:none;background:transparent;font-family:inherit;font-size:0.9rem;color:var(--text);border-radius:8px;cursor:pointer;transition:all 0.15s;margin:0.15rem 0}
+    .lesson-btn:hover{background:rgba(91,138,114,0.06)}
+    .lesson-btn.active{background:rgba(91,138,114,0.1);color:var(--accent);font-weight:600}
+    .lesson-btn .num{color:var(--text-muted);font-size:0.8rem;margin-right:0.3rem}
+    .settings-btn{position:fixed;top:1rem;right:1rem;background:var(--bg-card);border:1.5px solid var(--border);border-radius:10px;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--text-muted);z-index:100;transition:all 0.2s}
+    .settings-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .skill-btn{position:fixed;top:1rem;right:7rem;background:var(--bg-card);border:1.5px solid var(--border);border-radius:10px;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--text-muted);z-index:100;transition:all 0.2s}
+    .skill-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+    .skill-modal{background:var(--bg-card);border-radius:14px;padding:2rem;width:560px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.15);max-height:80vh;overflow-y:auto}
+    .skill-list{margin:0.8rem 0}
+    .skill-item{display:flex;align-items:center;gap:0.8rem;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:8px;margin:0.4rem 0;transition:all 0.15s}
+    .skill-item:hover{border-color:var(--accent2)}
+    .skill-item input[type=checkbox]{width:1.1rem;height:1.1rem;accent-color:var(--accent2)}
+    .skill-item-info{flex:1}
+    .skill-item-name{font-weight:600;font-size:0.95rem;color:var(--text)}
+    .skill-item-desc{font-size:0.8rem;color:var(--text-muted);margin-top:0.15rem}
+    .skill-installed{display:inline-block;font-size:0.72rem;padding:0.15rem 0.5rem;border-radius:10px;background:rgba(91,138,114,0.1);color:var(--accent);margin-left:auto}
+    .skill-remove{font-size:0.72rem;padding:0.15rem 0.5rem;border:1px solid var(--accent3);border-radius:10px;background:transparent;color:var(--accent3);cursor:pointer;margin-left:0.3rem}
+    .skill-remove:hover{background:rgba(199,92,92,0.08)}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;justify-content:center;align-items:center}
+    .modal-overlay.show{display:flex}
+    .modal{background:var(--bg-card);border-radius:14px;padding:2rem;width:480px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+    .modal h2{font-size:1.2rem;color:var(--accent);margin-bottom:1rem}
+    .modal label{display:block;font-size:0.9rem;font-weight:500;margin-bottom:0.3rem;color:var(--text)}
+    .modal input,.modal select{width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.9rem;background:var(--bg);color:var(--text);margin-bottom:1rem}
+    .modal input:focus,.modal select:focus{outline:none;border-color:var(--accent)}
+    .modal .btn-row{display:flex;gap:0.6rem;justify-content:flex-end}
+    .modal .btn{padding:0.5rem 1.2rem;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:500;transition:all 0.2s}
+    .modal .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .modal .btn-primary:hover{background:var(--accent-hover)}
+    .modal .btn-cancel{background:var(--bg);color:var(--text-muted)}
+    h2{font-size:1.35rem;color:var(--gold);margin:2rem 0 1rem;padding-bottom:0.4rem;border-bottom:1.5px solid var(--border);font-weight:600}
+    h3{font-size:1.05rem;color:var(--accent);margin-bottom:0.5rem;font-weight:600}
+    code{font-family:'JetBrains Mono',monospace;background:var(--bg-code);padding:0.15em 0.45em;border-radius:5px;font-size:0.88em;color:var(--accent);border:1px solid var(--border-light)}
+    pre{background:var(--bg-code);border:1.5px solid var(--border);border-radius:10px;padding:1.3rem 1.5rem;overflow-x:auto;margin:1rem 0;line-height:1.75;box-shadow:inset 0 1px 3px var(--shadow)}
+    pre code{background:none;padding:0;font-size:0.87rem;color:var(--text);border:none}
+    ul,ol{padding-left:1.5rem;margin:0.5rem 0}li{margin:0.35rem 0}
+    .mc{background:rgba(91,138,114,0.04);border-left:4px solid var(--sage);border-radius:0 10px 10px 0;padding:1rem 1.4rem;margin:1rem 0}
+    .mc h3{margin-top:0}
+    .hl-c{color:#8a9a7c;font-style:italic}.hl-k{color:#8b5fbf;font-weight:600}.hl-t{color:#3a8a8a;font-weight:500}
+    .hl-s{color:#b8860b}.hl-n{color:#c07040}.hl-a{color:#c75c8a;font-weight:500}
+    .iq{background:rgba(155,142,196,0.04);border:1.5px dashed var(--lavender);border-radius:10px;padding:1.2rem 1.5rem;margin:1.5rem 0}
+    .iq h3{color:var(--accent2);margin-bottom:0.8rem;font-size:1rem}
+    .qq{background:var(--bg-card);border:1.5px solid var(--border);border-radius:10px;padding:1.2rem 1.4rem;margin:0.8rem 0;box-shadow:0 2px 8px var(--shadow)}
+    .qo{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.6rem}
+    .qo button{background:var(--bg);color:var(--text);border:1.5px solid var(--border);border-radius:8px;padding:0.55rem 1rem;text-align:left;cursor:pointer;font-family:inherit;font-size:0.93rem;transition:all 0.15s}
+    .qo button:hover{border-color:var(--accent);background:rgba(91,138,114,0.04)}
+    .qo button.correct{border-color:var(--green);background:rgba(91,138,114,0.08);color:var(--green)}
+    .qo button.wrong{border-color:var(--accent3);background:rgba(199,92,92,0.06);color:var(--accent3)}
+    .qf{margin-top:0.6rem;padding:0.6rem 1rem;border-radius:8px;font-size:0.93rem;display:none}
+    .qf.ok{background:rgba(91,138,114,0.08);color:var(--green);display:block}
+    .qf.no{background:rgba(199,92,92,0.06);color:var(--accent3);display:block}
+    .pe{background:var(--bg-card);border:1.5px solid var(--border);border-radius:12px;padding:1.5rem;margin:1.5rem 0;box-shadow:0 4px 16px var(--shadow)}
+    .pe-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+    .pe-title{font-size:1.1rem;font-weight:600;color:var(--accent)}
+    .pe-prog{font-size:0.85rem;color:var(--text-muted);font-weight:400;background:var(--bg-code);padding:0.2rem 0.6rem;border-radius:12px;margin-left:0.5rem}
+    .pe-prompt{background:var(--bg);border:1px solid var(--border-light);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem;line-height:1.7;font-size:0.95rem}
+    .pe-editor{position:relative;display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg-code);margin-bottom:0.8rem}
+    .pe-ln{width:3rem;padding:0.8rem 0.5rem;text-align:right;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.75;color:var(--text-muted);background:rgba(0,0,0,0.02);border-right:1px solid var(--border-light);user-select:none;overflow:hidden;white-space:pre}
+    .pe-ta{flex:1;min-height:140px;padding:0.8rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.87rem;line-height:1.75;color:var(--text);background:transparent;border:none;outline:none;resize:vertical;tab-size:4;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+    .pe-ta:focus{background:rgba(91,138,114,0.02)}
+    .pe-ta:disabled{opacity:0.7;cursor:not-allowed}
+    .pe-btns{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.8rem}
+    .pe-btn{font-family:inherit;font-size:0.88rem;font-weight:500;padding:0.45rem 1rem;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;transition:all 0.2s}
+    .pe-check{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .pe-check:hover{background:var(--accent-hover)}
+    .pe-reset{background:var(--bg);color:var(--text-muted)}
+    .pe-hint{background:var(--bg);color:var(--amber);border-color:var(--amber)}
+    .pe-ans{background:var(--bg);color:var(--rose);border-color:var(--rose)}
+    .pe-next{background:var(--accent2);color:#fff;border-color:var(--accent2);margin-left:auto}
+    .pe-fb{display:none;padding:0.8rem 1.2rem;border-radius:8px;font-size:0.93rem;line-height:1.7}
+    .pe-fb.show{display:block}
+    .pe-fb.ok{background:rgba(91,138,114,0.08);border:1px solid var(--accent);color:var(--accent)}
+    .pe-fb.no{background:rgba(199,92,92,0.05);border:1px solid var(--accent3);color:var(--accent3)}
+    .pe-fb.hint{background:rgba(196,154,42,0.05);border:1px solid var(--amber);color:var(--amber)}
+    .pe-fb code{font-size:0.84rem}
+    .pe-fb pre{margin:0.5rem 0 0;background:rgba(0,0,0,0.03);border:1px solid var(--border-light)}
+    .pe-fb pre code{font-size:0.84rem}
+    .pe-rv{display:none;margin-top:1rem;background:rgba(91,138,114,0.04);border:1.5px solid var(--accent);border-radius:10px;padding:1.2rem 1.4rem}
+    .pe-rv.show{display:block}
+    .pe-rv-title{font-size:1rem;font-weight:600;color:var(--accent);margin-bottom:0.8rem}
+    .pe-rv pre{margin:0;background:var(--bg-code);border:1px solid var(--border-light);border-radius:8px}
+    .ai-bar{display:flex;gap:0.5rem;margin:1rem 0;flex-wrap:wrap}
+    .ai-btn{font-family:inherit;font-size:0.88rem;font-weight:500;padding:0.5rem 1.1rem;border-radius:8px;border:1.5px solid var(--accent2);cursor:pointer;transition:all 0.2s;background:var(--accent2);color:#fff}
+    .ai-btn:hover{opacity:0.85}
+    .ai-btn.outline{background:transparent;color:var(--accent2)}
+    .ai-btn:disabled{opacity:0.5;cursor:not-allowed}
+    .ai-status{font-size:0.85rem;color:var(--text-muted);padding:0.5rem 0}
+    @media(max-width:800px){.sidebar{display:none}.main{padding:1rem}}
+    </style>
+</head>
+<body>
+
+<button class="skill-btn" onclick="openSkillMgr()">🧩 Skill 管理</button>
+<button class="settings-btn" onclick="openSettings()">⚙️ API 设置</button>
+
+<!-- Skill 管理弹窗 -->
+<div class="modal-overlay" id="skillModal" onclick="if(event.target===this)closeSkillMgr()">
+    <div class="skill-modal">
+        <h2>🧩 Skill 管理</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem">安装 GitHub 上的 Skill，AI 会根据已安装的 Skill 优先回答相关问题</p>
+        <label>GitHub 仓库地址</label>
+        <input id="skillRepo" placeholder="https://github.com/user/repo" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.9rem;background:var(--bg);color:var(--text);margin-bottom:0.3rem">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.8rem">支持格式：用户名/仓库名 或完整 URL</div>
+        <label>分支（留空用默认分支）</label>
+        <input id="skillBranch" placeholder="master" style="width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.9rem;background:var(--bg);color:var(--text);margin-bottom:0.8rem">
+        <div class="btn-row" style="margin-bottom:1rem">
+            <button class="btn btn-primary" onclick="skillScan()">🔍 扫描仓库</button>
+            <button class="btn btn-cancel" onclick="closeSkillMgr()">关闭</button>
+        </div>
+        <div id="skillScanResult"></div>
+        <div style="border-top:1px solid var(--border-light);padding-top:1rem;margin-top:1rem">
+            <div style="font-size:0.9rem;font-weight:600;color:var(--accent);margin-bottom:0.5rem">已安装的 Skill</div>
+            <div id="skillInstalled"></div>
+        </div>
+    </div>
+</div>
+
+<!-- API 设置弹窗 -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+    <div class="modal">
+        <h2>⚙️ API 设置</h2>
+        <label>API 地址</label>
+        <input id="cfgUrl" placeholder="https://api.xxxx.com/v1/chat/completions">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin:-0.6rem 0 0.8rem">OpenAI 格式：https://域名/v1/chat/completions<br>Anthropic 格式：https://域名/anthropic（自动识别）</div>
+        <label>API Key</label>
+        <input id="cfgKey" type="password" placeholder="sk-...">
+        <label>模型</label>
+        <input id="cfgModel" placeholder="mimo-v2.5-pro">
+        <div class="btn-row" style="margin-bottom:1rem">
+            <button class="btn btn-primary" onclick="saveSettings()">保存</button>
+            <button class="btn btn-cancel" onclick="closeSettings()">关闭</button>
+        </div>
+        <div style="border-top:1px solid var(--border-light);padding-top:1rem">
+            <div style="font-size:0.9rem;font-weight:600;color:var(--accent);margin-bottom:0.8rem">🔧 连接测试</div>
+            <div class="btn-row" style="margin-bottom:0.8rem">
+                <button class="btn" style="font-size:0.85rem" onclick="testPing()">📡 测试连接</button>
+                <button class="btn" style="font-size:0.85rem" onclick="testModels()">📋 获取模型列表</button>
+                <button class="btn" style="font-size:0.85rem" onclick="testSend()">💬 发送测试消息</button>
+            </div>
+            <div id="testResult" style="font-size:0.85rem;max-height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--border-light);border-radius:8px;padding:0.8rem 1rem;display:none;line-height:1.6;white-space:pre-wrap;word-break:break-all"></div>
+        </div>
+    </div>
+</div>
+
+<div class="app">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main class="main" id="main"></main>
+    <aside class="qa-panel" id="qaPanel">
+        <div class="qa-header">
+            <span class="qa-header-title">💬 AI 问答助手</span>
+            <div class="qa-header-btns">
+                <button class="qa-header-btn" onclick="qaNew()" title="新会话">新建</button>
+                <button class="qa-header-btn" onclick="qaHistory()" title="历史会话">历史</button>
+                <button class="qa-header-btn" onclick="qaCompress()" title="压缩会话">压缩</button>
+                <button class="qa-header-btn" onclick="qaClear()" title="清空当前会话">清空</button>
+            </div>
+        </div>
+        <div class="qa-messages" id="qaMessages"></div>
+        <div class="qa-quick" id="qaQuick"></div>
+        <div class="qa-input-row">
+            <input class="qa-input" id="qaInput" placeholder="输入问题..." onkeydown="if(event.key==='Enter')qaAsk()">
+            <button class="qa-send" id="qaSend" onclick="qaAsk()">发送</button>
+        </div>
+    </aside>
+</div>
+<button class="qa-toggle" onclick="document.getElementById('qaPanel').style.display='flex'">💬</button>
+
+<script>
+// ============================================================
+// ===== 📝 以下区域需要按题材替换 =====
+// ============================================================
+
+// ── 1. 题材配置 ──
+var CONTENT_CONFIG = {
+    topic: 'Java Forge 模组开发',
+    subtitle: '交互式学习系统',
+    codeLang: 'java',
+    practiceMode: 'code',
+    codefixEnabled: true,
+    analogyBox: { title: 'MC 类比', icon: '🎮' },
+    pathHighlightRegex: /(src\/[^\s<]+|data\/[^\s<]+|[a-z_]+\.java|[a-z_]+\.gradle|startup_scripts|server_scripts|client_scripts)/g,
+    syntaxHighlight: {
+        keywords: 'abstract assert break case catch class continue default do else enum extends final finally for if implements import instanceof interface new package return super switch this throw throws try void while yield var public private protected static synchronized transient volatile native strictfp'.split(' '),
+        types: 'int long short byte float double boolean char String Integer Long Short Byte Float Double Boolean Character Object Class Number Void ItemStack BlockPos Vec3 Entity Player LivingEntity Level ServerLevel BlockState Block Item Items Blocks ResourceLocation Component InteractionHand InteractionResult EquipmentSlot AABB DamageSource MobEffect MobEffectInstance FoodProperties CompoundTag ListTag Tag LazyOptional ICapabilityProvider Capability ForgeRegistries DeferredRegister RegistryObject CreativeModeTab VoxelShape Direction UUID MathHelper Mth ArrayList HashMap HashSet List Map Set Collection Optional Override Deprecated'.split(' '),
+        singleLineComment: '//',
+        multiLineComment: ['/*', '*/']
+    }
+};
+
+// ── 2. AI 提示词配置 ──
+var AI_CONFIG = {
+    qaSystemPrompt: '你是 Minecraft Forge 模组开发专家，精通 KubeJS 和 Curios API。回答问题按以下格式（Markdown）：\n## 📋 是什么\n简洁解释概念。\n## 🔧 怎么用\n代码示例 + 文件路径 + 是否需要重启。\n## ⚠️ 注意事项\n常见坑和版本差异。\n## 🎮 实际场景\n在模组开发中的具体应用。',
+    quizGenPrompt: '根据课程内容出 3 道选择题，不要和已有题目重复。严格返回 JSON：[{"q":"题目","opts":["选项A","选项B","选项C","选项D"],"a":0,"explain":"解释"}]。选项不要加 A./B./C./D. 前缀。',
+    exerciseGenPrompt: '出一道编程练习题。严格返回 JSON：{"prompt":"题目","hint":"提示","answer":"正确代码","review":"带注释的参考代码"}',
+    explainPrompt: '用简洁中文讲解以下 MC 模组开发知识点，配合实际例子，300 字以内。',
+    compressPrompt: '压缩对话为摘要，保留关键知识点和代码片段：主题 + 知识点 + 重要代码 + 遗留问题',
+    quickQuestions: [
+        { label: 'DeferredRegister', text: '什么是 DeferredRegister？' },
+        { label: '事件系统', text: 'Forge 事件系统怎么用？' },
+        { label: 'Capability', text: 'Capability 是什么？' },
+        { label: '注册物品', text: '怎么注册自定义物品？' },
+        { label: 'KubeJS vs Forge', text: 'KubeJS 和 Forge 模组有什么区别？' }
+    ]
+};
+
+// ── 3. 课程数据 ──
+var COURSE = [
+{id:1,title:'变量与数据类型',phase:1,phaseName:'Java 核心基础',
+content:'<h2>💡 什么是变量</h2><p>变量就是<strong>有名字的盒子</strong>，用来存东西。</p><div class="mc"><h3>🎮 MC 类比</h3><ul><li>格子里放了 <strong>64 个圆石</strong> → 存数字的变量（int）</li><li>格子里放了 <strong>一把钻石剑</strong> → 存对象的变量（引用类型）</li><li>格子<strong>空着</strong> → 值为 <code>null</code> 的变量</li></ul></div>'+
+'<h2>📦 基本数据类型</h2><table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">类型</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">MC 中的例子</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">代码示例</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>int</code></td><td style="padding:0.5rem;border:1px solid var(--border)">物品数量、血量、红石信号</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>int health = 20;</code></td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>double</code></td><td style="padding:0.5rem;border:1px solid var(--border)">坐标、移动速度</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>double x = 123.45;</code></td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>float</code></td><td style="padding:0.5rem;border:1px solid var(--border)">旋转角度、动画进度</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>float yaw = 90.0f;</code></td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>boolean</code></td><td style="padding:0.5rem;border:1px solid var(--border)">是否潜行、是否着火</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>boolean on = true;</code></td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>long</code></td><td style="padding:0.5rem;border:1px solid var(--border)">世界种子、游戏刻</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>long seed = 123L;</code></td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>String</code></td><td style="padding:0.5rem;border:1px solid var(--border)">玩家名、模组名</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>String name = "Notch";</code></td></tr></tbody></table>'+
+'<h2>🏷️ 引用类型 vs 基本类型</h2><pre><code class="language-java">// 基本类型：存的是值本身\nint health = 20;\n\n// 引用类型：存的是对象的"地址"\nString name = "Notch";\nItemStack sword = new ItemStack(Items.DIAMOND_SWORD);\nBlockPos pos = new BlockPos(0, 64, 0);\nEntity entity = null;  // null = 没有指向任何对象</code></pre>'+
+'<h2>📐 变量声明规则</h2><pre><code class="language-java">// 格式：类型 变量名 = 值;\nint health = 20;\n\n// 常量：final 修饰，不可修改\nfinal int MAX_STACK = 64;\n\n// 模组常量标准写法\npublic static final int COOLDOWN = 20;</code></pre>',
+quizzes:[
+{q:'玩家的 X 坐标（123.456）应该用什么类型？',opts:['int','double','boolean','String'],a:1},
+{q:'float 字面量 90.0 末尾必须加什么？',opts:['d','f','L','不需要'],a:1},
+{q:'以下哪个是引用类型？',opts:['int','boolean','float','ItemStack'],a:3},
+{q:'`final int MAX = 64;` 中 final 的作用是？',opts:['声明变量','声明常量不可修改','声明方法','声明类'],a:1},
+{q:'MC 中世界种子应该用什么类型存储？',opts:['int','float','long','byte'],a:2},
+{q:'`String name = "Notch";` 中 String 是什么类型？',opts:['基本类型','引用类型','布尔类型','数值类型'],a:1}
+],
+practice:[
+{prompt:'声明一个整数变量 health，值为 20',hint:'格式：类型 变量名 = 值; 整数类型是 int',answer:'int health = 20;',review:'// int = 整数类型\n// health = 变量名（MC 玩家默认 20 血）\nint health = 20;'},
+{prompt:'声明一个 double 变量 posX，值为 123.45',hint:'有小数点 → 用 double',answer:'double posX = 123.45;',review:'// double = 双精度浮点数\n// posX = X 坐标\ndouble posX = 123.45;'},
+{prompt:'声明一个 boolean 变量 isOnFire，值为 true',hint:'布尔类型是 boolean，只有 true/false',answer:'boolean isOnFire = true;',review:'// boolean = 布尔值\n// isOnFire = 是否着火\nboolean isOnFire = true;'},
+{prompt:'声明一个 float 变量 yaw，值为 90.0',hint:'float 字面量末尾必须加 f',answer:'float yaw = 90.0f;',review:'// float = 浮点数\n// yaw = 偏航角\n// 90.0f = 注意末尾的 f\nfloat yaw = 90.0f;'},
+{prompt:'声明一个 String 变量 modName，值为 "MyMod"',hint:'String 大写 S，内容用双引号',answer:'String modName = "MyMod";',review:'// String = 字符串（引用类型）\n// modName = 模组名称\nString modName = "MyMod";'},
+{prompt:'声明一个常量 MAX_STACK_SIZE，值为 64',hint:'常量用 final，命名全大写+下划线',answer:'final int MAX_STACK_SIZE = 64;',review:'// final = 常量（不可修改）\n// MAX_STACK_SIZE = 最大物品堆大小\nfinal int MAX_STACK_SIZE = 64;'}
+],
+codefix:[
+{prompt:'这段代码有 bug（提示：float 字面量）',buggy:'float yaw = 90.0;',fixed:'float yaw = 90.0f;',hint:'float 字面量末尾必须加 f',review:'// 原代码：90.0 没有 f 后缀\n// 修复：改为 90.0f'},
+{prompt:'这段代码有 bug（提示：常量命名规范）',buggy:'final int maxStackSize = 64;',fixed:'final int MAX_STACK_SIZE = 64;',hint:'常量名应该全大写，单词间用下划线分隔',review:'// 原代码：maxStackSize 用了小驼峰\n// 修复：改为 MAX_STACK_SIZE'}
+]},
+
+{id:2,title:'条件与循环',phase:1,phaseName:'Java 核心基础',
+content:'<h2>🔀 if / else 条件判断</h2><pre><code class="language-java">// 基本格式\nif (条件) {\n    // 条件为 true 时执行\n} else {\n    // 条件为 false 时执行\n}\n\n// MC 例子：玩家血量低于 5 就给回复效果\nif (player.getHealth() < 5.0f) {\n    player.addEffect(new MobEffectInstance(\n        MobEffects.REGENERATION, 100, 1\n    ));\n}</code></pre>'+
+'<h2>🔄 循环：for 和 while</h2><pre><code class="language-java">// for 循环：执行固定次数\nfor (int i = 0; i < 10; i++) {\n    // 执行 10 次（i 从 0 到 9）\n}\n\n// MC 例子：遍历玩家物品栏\nfor (int i = 0; i < player.getInventory().getContainerSize(); i++) {\n    ItemStack stack = player.getInventory().getItem(i);\n    if (stack.isEmpty()) {\n        // 这个格子是空的\n    }\n}\n\n// while 循环：条件为 true 就一直执行\nint count = 0;\nwhile (count < 5) {\n    count++;  // 别忘了更新条件，否则死循环\n}</code></pre>'+
+'<h2>⚡ 逻辑运算符</h2><pre><code class="language-java">// && = 且（AND），两个条件都为 true\nif (isSneaking && isOnFire) { ... }\n\n// || = 或（OR），至少一个为 true\nif (isSneaking || isRunning) { ... }\n\n// ! = 非（NOT），取反\nif (!isDead) { ... }  // 如果没死</code></pre>',
+quizzes:[
+{q:'if (health < 5) 中，health 等于 3 时会执行 if 里面的代码吗？',opts:['会','不会','报错','不确定'],a:0},
+{q:'for (int i = 0; i < 3; i++) 会执行几次？',opts:['2 次','3 次','4 次','无限次'],a:1},
+{q:'&& 运算符表示什么逻辑？',opts:['或','且','非','异或'],a:1},
+{q:'`while (true) {}` 会怎样？',opts:['执行一次','编译报错','死循环','不执行'],a:2},
+{q:'`for (int i = 0; i < 5; i++)` 循环结束后 i 的值是？',opts:['4','5','6','0'],a:1},
+{q:'`if (a) {} else {}` 中 else 什么时候执行？',opts:['a 为 true','a 为 false','总是执行','从不执行'],a:1}
+],
+practice:[
+{prompt:'写一个 if 语句：如果 health 小于 5，就执行 giveHeal()',hint:'格式：if (条件) { 执行代码; }',answer:'if (health < 5) {\n    giveHeal();\n}',review:'// if = 如果\n// health < 5 = 条件：血量小于 5\nif (health < 5) {\n    giveHeal();\n}'},
+{prompt:'写一个 for 循环，从 0 到 4（共 5 次），每次打印 i',hint:'格式：for (int i = 0; i < 5; i++) { ... }',answer:'for (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}',review:'// for = 循环\n// int i = 0 = 从 0 开始\n// i < 5 = 小于 5 就继续\n// i++ = 每次加 1\nfor (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}'}
+],
+codefix:[
+{prompt:'这段 for 循环有 bug（提示：题目要求执行 5 次）',buggy:'for (int i = 0; i <= 5; i++) {\n    System.out.println(i);\n}',fixed:'for (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}',hint:'<=5 会执行 6 次（0到5），题目要 5 次应该用 <5',review:'// 原代码：i <= 5 执行 6 次\n// 修复：改为 i < 5，执行 5 次'},
+{prompt:'这段 if 有 bug（提示：比较运算符）',buggy:'if (health = 0) {\n    System.out.println("死了");\n}',fixed:'if (health == 0) {\n    System.out.println("死了");\n}',hint:'= 是赋值，== 才是比较',review:'// 原代码：= 是赋值\n// 修复：改为 ==（双等号才是比较）'}
+]},
+
+{id:3,title:'方法（函数）',phase:1,phaseName:'Java 核心基础',
+content:'<h2>📦 什么是方法</h2><p>方法就是一段<strong>有名字的代码块</strong>，可以被反复调用。MC 中的事件处理器就是方法。</p><pre><code class="language-java">// 方法格式：\n// 访问修饰符 返回类型 方法名(参数) { 代码 }\n\npublic void giveHeal(Player player) {\n    // void = 不返回值\n    player.addEffect(new MobEffectInstance(\n        MobEffects.REGENERATION, 100, 0\n    ));\n}\n\n// 有返回值的方法\npublic int getMaxHealth(LivingEntity entity) {\n    return (int) entity.getMaxHealth();\n    // return = 返回结果\n}</code></pre>',
+quizzes:[
+{q:'方法声明中 void 表示什么？',opts:['返回整数','返回字符串','不返回任何值','出错'],a:2},
+{q:'return 关键字的作用是？',opts:['结束程序','返回方法的结果','声明变量','循环'],a:1},
+{q:'`@SubscribeEvent` 标记的是什么？',opts:['类','方法','变量','常量'],a:1},
+{q:'方法的好处是什么？',opts:['让代码更长','代码复用','增加变量','删除代码'],a:1},
+{q:'`public void giveHeal(Player p)` 中 Player p 是什么？',opts:['方法名','返回类型','参数','变量'],a:2},
+{q:'有返回值的方法必须用什么关键字？',opts:['void','return','public','static'],a:1}
+],
+practice:[
+{prompt:'声明一个方法 healPlayer，接收一个 Player 参数 player，不返回值，内部调用 giveHeal(player)',hint:'格式：public void 方法名(参数) { 调用; }',answer:'public void healPlayer(Player player) {\n    giveHeal(player);\n}',review:'// public = 公开\n// void = 不返回值\n// healPlayer = 方法名\npublic void healPlayer(Player player) {\n    giveHeal(player);\n}'}
+]},
+
+{id:4,title:'类与对象',phase:1,phaseName:'Java 核心基础',
+content:'<h2>🏗️ 什么是类</h2><p>类（Class）是对象的<strong>模板/蓝图</strong>。MC 中 Block、Item、Entity 都是类。</p><pre><code class="language-java">// 定义一个类\nclass MagicSword {\n    // 字段（属性）\n    private int damage;\n    private String name;\n\n    // 构造方法（创建对象时调用）\n    public MagicSword(int damage, String name) {\n        this.damage = damage;  // this = 当前对象\n        this.name = name;\n    }\n\n    // 方法（行为）\n    public void attack(LivingEntity target) {\n        target.hurt(target.damageSources().generic(), this.damage);\n    }\n}\n\n// 创建对象（实例化）\nMagicSword sword = new MagicSword(10, "灭世之剑");\nsword.attack(怪物);  // 调用方法</code></pre>',
+quizzes:[
+{q:'new 关键字的作用是？',opts:['声明变量','创建对象','定义类','删除对象'],a:1},
+{q:'this 关键字指的是？',opts:['父类','当前类','当前对象','全局变量'],a:2},
+{q:'构造方法的作用是？',opts:['删除对象','创建并初始化对象','声明变量','循环'],a:1},
+{q:'`class MagicSword` 中 class 的作用是？',opts:['创建对象','定义类','声明变量','导入包'],a:1},
+{q:'`private int damage` 中 private 的作用是？',opts:['公开','私有，只有当前类能访问','静态','常量'],a:1},
+{q:'类和对象的关系是？',opts:['没区别','类是模板，对象是实例','对象是模板，类是实例','类包含对象'],a:1}
+]},
+
+{id:5,title:'继承与接口',phase:1,phaseName:'Java 核心基础',
+content:'<h2>🧬 继承（extends）</h2><p>子类继承父类的属性和方法。MC 中所有方块继承 Block，所有物品继承 Item。</p><pre><code class="language-java">// 自定义武器继承 SwordItem\nclass FireSword extends SwordItem {\n    @Override\n    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {\n        target.setSecondsOnFire(5);  // 攻击时点燃目标\n        return super.hurtEnemy(stack, target, attacker);\n    }\n}</code></pre>'+
+'<h2>🔌 接口（implements）</h2><pre><code class="language-java">// 实现 ICurioItem 接口（Curios 模组）\nclass MagicRing implements ICurioItem {\n    @Override\n    public void curioTick(SlotContext context) {\n        // 每 tick 执行——给佩戴者效果\n    }\n\n    @Override\n    public boolean canEquip(SlotContext context) {\n        return true;  // 可以装备\n    }\n}</code></pre>',
+quizzes:[
+{q:'extends 关键字用于？',opts:['实现接口','继承父类','创建对象','声明常量'],a:1},
+{q:'@Override 注解的作用是？',opts:['删除方法','重写父类方法','创建新类','声明变量'],a:1},
+{q:'implements 关键字用于？',opts:['继承父类','实现接口','创建对象','声明常量'],a:1},
+{q:'MC 中 SwordItem 继承自哪个类？',opts:['Block','Item','Entity','Player'],a:1},
+{q:'子类可以重写父类的方法吗？',opts:['不可以','可以，用 @Override','只能重写 static 方法','只能重写 private 方法'],a:1},
+{q:'接口和类的区别是？',opts:['没区别','接口不能有方法','接口只有方法签名没有实现','类不能继承'],a:2}
+]},
+
+{id:6,title:'数组与集合',phase:1,phaseName:'Java 核心基础',
+content:'<h2>📦 数组</h2><pre><code class="language-java">// 固定长度的数组\nint[] levels = {1, 2, 3, 4, 5};\nString[] names = new String[10];  // 10 个元素\n\n// 访问元素（从 0 开始）\nint first = levels[0];  // 1\nlevels[2] = 99;          // 修改第 3 个</code></pre>'+
+'<h2>📋 ArrayList（动态数组）</h2><pre><code class="language-java">// 长度可变，模组中更常用\nList&lt;ItemStack&gt; items = new ArrayList&lt;&gt;();\nitems.add(new ItemStack(Items.DIAMOND));  // 添加\nitems.remove(0);                           // 删除第 1 个\nint size = items.size();                   // 获取大小\n\n// 遍历\nfor (ItemStack item : items) {\n    // 处理每个 item\n}</code></pre>'+
+'<h2>🗺️ HashMap（键值对）</h2><pre><code class="language-java">// 用 key 查找 value\nMap&lt;String, Integer&gt; scores = new HashMap&lt;&gt;();\nscores.put("Notch", 100);      // 存入\nint s = scores.get("Notch");   // 取出 → 100</code></pre>',
+quizzes:[
+{q:'数组的索引从几开始？',opts:['1','0','-1','看情况'],a:1},
+{q:'ArrayList 和数组的区别是？',opts:['没区别','ArrayList 长度可变','数组长度可变','ArrayList 不能存对象'],a:1},
+{q:'`items.add(x)` 的作用是？',opts:['删除元素','添加元素','获取元素','修改元素'],a:1},
+{q:'HashMap 用什么存取数据？',opts:['索引','键值对','数组','列表'],a:1},
+{q:'`scores.containsKey("a")` 返回什么类型？',opts:['int','String','boolean','void'],a:2},
+{q:'遍历 List 用什么循环最简洁？',opts:['while','do-while','for-each','goto'],a:2}
+]},
+
+{id:7,title:'泛型',phase:1,phaseName:'Java 核心基础',
+content:'<h2>🏷️ 什么是泛型</h2><p>泛型让类或方法能处理<strong>多种类型</strong>，同时保持类型安全。</p><pre><code class="language-java">// 没有泛型：可以放任何东西，不安全\nList items = new ArrayList();\nitems.add("hello");\nitems.add(123);  // 混在一起\n\n// 有泛型：只能放指定类型\nList&lt;ItemStack&gt; items = new ArrayList&lt;&gt;();\nitems.add(new ItemStack(Items.DIAMOND));\n// items.add("hello");  // 编译报错！</code></pre>'+
+'<h2>🎮 MC 中的泛型</h2><pre><code class="language-java">// RegistryObject&lt;Item&gt; = 物品注册对象\nRegistryObject&lt;Item&gt; MY_ITEM = ITEMS.register("my_item", ...);\n\n// LazyOptional&lt;IItemHandler&gt; = 懒加载物品处理器\nLazyOptional&lt;IItemHandler&gt; handler = cap;</code></pre>',
+quizzes:[
+{q:'`List<ItemStack>` 中的 `<ItemStack>` 是什么？',opts:['注释','泛型','方法名','变量名'],a:1},
+{q:'泛型的作用是？',opts:['让代码更短','类型安全','删除变量','加速运行'],a:1},
+{q:'`List<String>` 能添加 int 类型吗？',opts:['能','不能，编译报错','看情况','运行时才报错'],a:1},
+{q:'`new ArrayList<>()` 尖括号里为空是？',opts:['语法错误','泛型推断','空集合','默认 Object'],a:1},
+{q:'MC 中 `RegistryObject<Item>` 的 Item 是？',opts:['变量名','泛型类型参数','方法名','注解'],a:1},
+{q:'没有泛型的 List 能放什么？',opts:['只能放 String','只能放 int','任何对象','只能放数字'],a:2}
+]},
+
+{id:8,title:'包与导入',phase:2,phaseName:'Java 进阶 + Forge 入门',
+content:'<h2>📦 包（package）</h2><p>包就是文件夹，用来组织类。MC 模组有自己的包结构。</p><pre><code class="language-java">// 文件开头声明包\npackage com.example.mymod.items;\n\n// 导入其他包的类\nimport net.minecraft.world.item.Item;\nimport net.minecraft.world.item.SwordItem;\nimport net.minecraftforge.registries.DeferredRegister;</code></pre>',
+quizzes:[
+{q:'import 语句的作用是？',opts:['定义类','导入其他包的类','删除类','运行程序'],a:1},
+{q:'package 语句放在文件的哪里？',opts:['文件末尾','文件开头','import 后面','类定义后面'],a:1},
+{q:'java.lang 包需要手动 import 吗？',opts:['需要','不需要，自动导入','看情况','只有 String 不需要'],a:1},
+{q:'包名通常用什么分隔？',opts:['/','\\','.',':'],a:2},
+{q:'MC 模组的物品类通常在哪个包下？',opts:['java.lang','net.minecraft.world.item','javax.swing','java.util'],a:1},
+{q:'`import net.minecraft.*;` 会导入什么？',opts:['所有子包的类','只有直接子类','报错','导入整个模组'],a:1}
+]},
+
+{id:9,title:'注解',phase:2,phaseName:'Java 进阶 + Forge 入门',
+content:'<h2>@ 注解（Annotation）</h2><p>注解是给编译器或框架的<strong>特殊标记</strong>，以 @ 开头。</p><pre><code class="language-java">@Mod("mymod")  // 标记模组主类\npublic class MyMod { ... }\n\n@SubscribeEvent  // 标记事件监听方法\npublic void onBlockBreak(BlockEvent.BreakEvent event) { ... }\n\n@Override  // 标记重写父类方法\npublic void appendHoverText(ItemStack stack, ...) { ... }</code></pre>',
+quizzes:[
+{q:'@Mod 注解标记的是？',opts:['事件监听器','模组主类','物品类','方法'],a:1},
+{q:'@SubscribeEvent 标记的是？',opts:['类','方法','变量','常量'],a:1},
+{q:'@Override 的作用是？',opts:['创建方法','重写父类方法','删除方法','声明变量'],a:1},
+{q:'注解以什么符号开头？',opts:['#','@','$','%'],a:1},
+{q:'@OnlyIn(Dist.CLIENT) 表示？',opts:['只在服务端','只在客户端','两端都运行','不运行'],a:1},
+{q:'注解会影响代码的执行逻辑吗？',opts:['会','不会，只是标记','看情况','编译时才影响'],a:1}
+]},
+
+{id:10,title:'Lambda 与函数式',phase:2,phaseName:'Java 进阶 + Forge 入门',
+content:'<h2>λ Lambda 表达式</h2><p>Lambda 是<strong>简写的方法</strong>，常用于事件监听和回调。</p><pre><code class="language-java">// 传统写法\nbutton.addActionListener(new ActionListener() {\n    @Override\n    public void actionPerformed(ActionEvent e) {\n        System.out.println("点击了");\n    }\n});\n\n// Lambda 简写（效果一样）\nbutton.addActionListener(e -> System.out.println("点击了"));\n\n// MC 中的例子：物品属性\nItemProperties.register(myItem, new ResourceLocation("pull"),\n    (stack, level, entity, seed) -> {\n        return getPullProgress(stack);\n    }\n);</code></pre>',
+quizzes:[
+{q:'Lambda 表达式 -> 左边是？',opts:['返回值','参数','方法名','类名'],a:1},
+{q:'`x -> x * 2` 中 -> 右边是？',opts:['参数','返回值','方法名','变量'],a:1},
+{q:'Lambda 的作用是？',opts:['定义类','简化匿名类写法','创建对象','声明变量'],a:1},
+{q:'`(a, b) -> a + b` 有几个参数？',opts:['1','2','3','0'],a:1},
+{q:'Lambda 能替代什么？',opts:['for 循环','if 语句','只有一个方法的匿名类','类定义'],a:2},
+{q:'`e -> {}` 中花括号里可以？',opts:['只能写一行','只能声明变量','写多行语句','只能写 return'],a:2}
+]},
+
+{id:11,title:'异常处理',phase:2,phaseName:'Java 进阶 + Forge 入门',
+content:'<h2>⚠️ try / catch 异常处理</h2><pre><code class="language-java">// 捕获异常，防止程序崩溃\ntry {\n    int result = 10 / 0;  // 会抛出 ArithmeticException\n} catch (ArithmeticException e) {\n    System.out.println("不能除以零！" + e.getMessage());\n} finally {\n    // 无论是否异常都会执行（可选）\n}\n\n// MC 中常见：读取 NBT 数据\ntry {\n    int damage = tag.getInt("damage");\n} catch (Exception e) {\n    damage = 0;  // 数据损坏，用默认值\n}</code></pre>',
+quizzes:[
+{q:'try 块中发生异常后会执行哪里的代码？',opts:['try 块剩余代码','catch 块','都不执行','程序直接关闭'],a:1},
+{q:'finally 块什么时候执行？',opts:['只有异常时','只有正常时','总是执行','从不执行'],a:2},
+{q:'`10 / 0` 会抛出什么异常？',opts:['NullPointerException','ArrayIndexOutOfBounds','ArithmeticException','IOException'],a:2},
+{q:'try-catch 的作用是？',opts:['加速代码','防止程序崩溃','删除错误','声明变量'],a:1},
+{q:'`catch (Exception e)` 中的 e 是？',opts:['异常类型','异常对象','变量名','关键字'],a:1},
+{q:'不写 catch 只写 try-finally 可以吗？',opts:['不可以','可以，但异常会传播','编译报错','运行报错'],a:1}
+]},
+
+{id:12,title:'Forge 模组结构',phase:3,phaseName:'Forge 核心',
+content:'<h2>📁 模组目录结构</h2><pre><code>src/main/java/com/example/mymod/\n├── MyMod.java              // 主类（@Mod 注解）\n├── init/\n│   ├── ModItems.java       // 物品注册\n│   ├── ModBlocks.java      // 方块注册\n│   └── ModEntities.java    // 实体注册\n├── items/\n│   └── FireSwordItem.java  // 自定义物品\n└── events/\n    └── ModEvents.java      // 事件监听\n\nsrc/main/resources/\n├── META-INF/mods.toml      // 模组信息\n└── assets/mymod/\n    ├── lang/zh_cn.json     // 中文翻译\n    └── textures/item/       // 物品贴图</code></pre>'+
+'<h2>🔑 主类</h2><pre><code class="language-java">@Mod("mymod")\npublic class MyMod {\n    public static final String MOD_ID = "mymod";\n    public MyMod() {\n        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();\n        ModItems.ITEMS.register(bus);\n        ModBlocks.BLOCKS.register(bus);\n        MinecraftForge.EVENT_BUS.register(this);\n    }\n}</code></pre>',
+quizzes:[
+{q:'@Mod("mymod") 中的 "mymod" 是什么？',opts:['类名','模组 ID','包名','版本号'],a:1},
+{q:'模组物品注册放在哪个目录？',opts:['items/','init/','events/','assets/'],a:1},
+{q:'mods.toml 文件的作用是？',opts:['注册物品','定义模组信息','监听事件','渲染模型'],a:1},
+{q:'模组主类的构造方法中通常做什么？',opts:['画贴图','注册物品/方块/事件','写配置文件','删除文件'],a:1},
+{q:'IEventBus 的作用是？',opts:['渲染模型','事件总线，用于注册','网络通信','数据存储'],a:1},
+{q:'assets/mymod/lang/ 目录放什么？',opts:['代码','贴图','语言翻译文件','配置'],a:2}
+]},
+
+{id:13,title:'事件系统',phase:3,phaseName:'Forge 核心',
+content:'<h2>📡 EventBus 事件总线</h2><pre><code class="language-java">// 在主类构造方法中注册\nMinecraftForge.EVENT_BUS.register(this);\n\n// 监听玩家受伤事件\n@SubscribeEvent\npublic void onPlayerHurt(LivingHurtEvent event) {\n    LivingEntity entity = event.getEntity();\n    if (entity instanceof Player) {\n        float damage = event.getAmount();\n        event.setAmount(damage * 0.5f);  // 伤害减半\n    }\n}</code></pre>',
+quizzes:[
+{q:'@SubscribeEvent 标记的方法会被谁调用？',opts:['手动调用','Forge 自动调用','玩家调用','Java 虚拟机'],a:1},
+{q:'MinecraftForge.EVENT_BUS.register(this) 的作用是？',opts:['注册物品','注册事件监听器','注册方块','注册网络'],a:1},
+{q:'LivingHurtEvent 什么时候触发？',opts:['玩家移动','实体受伤','方块被破坏','物品被捡起'],a:1},
+{q:'event.setAmount(0) 会怎样？',opts:['报错','伤害变为 0（无敌）','伤害翻倍','无效果'],a:1},
+{q:'事件监听方法必须是什么访问修饰符？',opts:['private','protected','public','默认'],a:2},
+{q:'一个类可以监听多个事件吗？',opts:['不可以','可以，多个 @SubscribeEvent 方法','只能两个','看情况'],a:1}
+]},
+
+{id:14,title:'注册系统',phase:3,phaseName:'Forge 核心',
+content:'<h2>📝 DeferredRegister 延迟注册</h2><pre><code class="language-java">// 物品注册\nclass ModItems {\n    public static final DeferredRegister&lt;Item&gt; ITEMS =\n        DeferredRegister.create(ForgeRegistries.ITEMS, MyMod.MOD_ID);\n\n    public static final RegistryObject&lt;Item&gt; RUBY =\n        ITEMS.register("ruby", () -> new Item(new Item.Properties()));\n}\n\n// 在主类中注册到事件总线\nModItems.ITEMS.register(bus);</code></pre>',
+quizzes:[
+{q:'RegistryObject 的作用是？',opts:['直接创建对象','延迟获取注册的对象','删除对象','修改对象'],a:1},
+{q:'ITEMS.register("ruby", ...) 中 "ruby" 是？',opts:['类名','物品 ID','变量名','方法名'],a:1},
+{q:'注册物品后还需要做什么？',opts:['什么都不用','在主类中 register 到事件总线','手动创建对象','删除旧物品'],a:1},
+{q:'DeferredRegister.create 的第一个参数是？',opts:['模组 ID','注册表类型','物品类','事件总线'],a:1},
+{q:'new Item.Properties() 的作用是？',opts:['创建物品','定义物品属性','注册物品','删除物品'],a:1},
+{q:'RegistryObject 的 .get() 方法返回什么？',opts:['注册表','实际的物品对象','字符串','布尔值'],a:1}
+]},
+
+{id:15,title:'Capability 系统',phase:3,phaseName:'Forge 核心',
+content:'<h2>🔋 Capability（能力系统）</h2><p>Capability 让你给任何实体附加额外数据，比如自定义能量、mana 等。</p><pre><code class="language-java">// 定义一个能力接口\npublic interface IMana {\n    int getMana();\n    void setMana(int mana);\n    void addMana(int amount);\n}\n\n// 实现\npublic class ManaCapability implements IMana {\n    private int mana = 0;\n    public int getMana() { return mana; }\n    public void setMana(int m) { this.mana = m; }\n    public void addMana(int a) { this.mana += a; }\n}</code></pre>',
+quizzes:[
+{q:'Capability 系统的作用是？',opts:['注册物品','给实体附加自定义数据','渲染模型','播放声音'],a:1},
+{q:'自定义 Capability 需要先定义什么？',opts:['类','接口','变量','常量'],a:1},
+{q:'AttachCapabilitiesEvent 什么时候触发？',opts:['玩家登录','实体创建时','方块被破坏','物品被捡起'],a:1},
+{q:'Capability 适合存储什么数据？',opts:['方块位置','玩家自定义属性（如 mana）','物品名称','模组版本'],a:1},
+{q:'LazyOptional 的作用是？',opts:['直接获取值','安全地获取可能不存在的能力','删除能力','创建能力'],a:1},
+{q:'自定义 Capability 需要注册吗？',opts:['不需要','需要，在主类中注册','需要在 mods.toml 中注册','需要在 build.gradle 中注册'],a:1}
+]},
+
+{id:16,title:'网络同步',phase:3,phaseName:'Forge 核心',
+content:'<h2>🌐 网络同步</h2><p>MC 是客户端-服务端架构，数据需要在两端同步。</p><pre><code class="language-java">// 注册网络频道\nSimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(\n    new ResourceLocation("mymod", "main"),\n    () -> "1.0", "1.0"::equals, "1.0"::equals\n);\n\n// 注册数据包\nCHANNEL.registerMessage(0, ManaSyncPacket.class,\n    ManaSyncPacket::encode,\n    ManaSyncPacket::decode,\n    ManaSyncPacket::handle\n);\n\n// 发送数据包（服务端 → 客户端）\nCHANNEL.sendTo(packet, player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);</code></pre>',
+quizzes:[
+{q:'MC 的网络架构是什么模式？',opts:['单机','客户端-服务端','P2P','云端'],a:1},
+{q:'SimpleChannel 的作用是？',opts:['渲染模型','网络通信频道','事件监听','物品注册'],a:1},
+{q:'服务端发数据给客户端用什么方法？',opts:['sendTo','sendFrom','broadcast','receive'],a:0},
+{q:'NetworkDirection.PLAY_TO_CLIENT 表示？',opts:['客户端到服务端','服务端到客户端','双向','无方向'],a:1},
+{q:'为什么需要网络同步？',opts:['代码更漂亮','客户端和服务端数据需要一致','加速运行','减少内存'],a:1},
+{q:'registerMessage 的参数不包括？',opts:['数据包类','编码方法','解码方法','渲染方法'],a:3}
+]},
+
+{id:17,title:'从零开发完整模组',phase:4,phaseName:'实战',
+content:'<h2>🚀 实战：做一个完整的模组</h2><p>把前面学到的所有知识串起来，开发一个包含自定义物品、方块、事件的模组。</p><pre><code class="language-java">// 第一步：主类\n@Mod("mymod")\npublic class MyMod {\n    public static final String MOD_ID = "mymod";\n    public MyMod() {\n        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();\n        ModItems.ITEMS.register(bus);\n        MinecraftForge.EVENT_BUS.register(new ModEvents());\n    }\n}\n\n// 第二步：注册物品\nclass ModItems {\n    public static final DeferredRegister&lt;Item&gt; ITEMS =\n        DeferredRegister.create(ForgeRegistries.ITEMS, MyMod.MOD_ID);\n    public static final RegistryObject&lt;Item&gt; RUBY =\n        ITEMS.register("ruby", () -> new Item(new Item.Properties()));\n}\n\n// 第三步：事件监听\nclass ModEvents {\n    @SubscribeEvent\n    public void onPickup(ItemPickupEvent event) {\n        // 捡到物品时触发\n    }\n}</code></pre>',
+quizzes:[
+{q:'模组开发的第一步是？',opts:['写事件','注册物品','创建主类','画贴图'],a:2},
+{q:'模组 ID 的作用是？',opts:['类名','唯一标识模组','变量名','版本号'],a:1},
+{q:'物品注册需要什么类？',opts:['EventBus','DeferredRegister','SimpleChannel','Capability'],a:1},
+{q:'@SubscribeEvent 放在哪里？',opts:['类上面','方法上面','变量上面','包上面'],a:1},
+{q:'mods.toml 文件放在哪个目录？',opts:['java/','resources/META-INF/','assets/','data/'],a:1},
+{q:'模组的中文翻译放在哪里？',opts:['java/','mods.toml','assets/modid/lang/zh_cn.json','data/'],a:2}
+]}
+];
+
+// ============================================================
+// ===== 以下为通用框架代码，一般不需要修改 =====
+// ============================================================
+
+// ── 语法高亮 ──
+var KW_SET = {}, TY_SET = {};
+if (CONTENT_CONFIG.syntaxHighlight) {
+    CONTENT_CONFIG.syntaxHighlight.keywords.forEach(function(k){ KW_SET[k]=1; });
+    CONTENT_CONFIG.syntaxHighlight.types.forEach(function(t){ TY_SET[t]=1; });
+}
+var LITS = {'true':1,'false':1,'null':1};
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function hlLine(l){
+    if (!CONTENT_CONFIG.syntaxHighlight) return esc(l);
+    var o='',i=0,len=l.length;
+    var slc = CONTENT_CONFIG.syntaxHighlight.singleLineComment || '//';
+    var mlc = CONTENT_CONFIG.syntaxHighlight.multiLineComment || ['/*','*/'];
+    while(i<len){
+        var c=l[i];
+        if(c===slc[0]&&slc.length===1&&i+1<len&&l[i+1]===slc[0]){o+='<span class="hl-c">'+esc(l.substring(i))+'</span>';return o}
+        if(c==='/'&&i+1<len&&l[i+1]==='/'){o+='<span class="hl-c">'+esc(l.substring(i))+'</span>';return o}
+        if(c==='/'&&i+1<len&&l[i+1]==='*'){var e=l.indexOf('*/',i+2);if(e===-1){o+='<span class="hl-c">'+esc(l.substring(i))+'</span>';return o}o+='<span class="hl-c">'+esc(l.substring(i,e+2))+'</span>';i=e+2;continue}
+        if(c==='"'){var j=i+1;while(j<len&&l[j]!=='"'){if(l[j]==='\\')j++;j++}if(j<len)j++;o+='<span class="hl-s">'+esc(l.substring(i,j))+'</span>';i=j;continue}
+        if(c==="'"){var j=i+1;while(j<len&&l[j]!=="'"){if(l[j]==='\\')j++;j++}if(j<len)j++;o+='<span class="hl-s">'+esc(l.substring(i,j))+'</span>';i=j;continue}
+        if(/[0-9]/.test(c)||(c==='.'&&i+1<len&&/[0-9]/.test(l[i+1]))){var j=i;if(c==='0'&&j+1<len&&(l[j+1]==='x'||l[j+1]==='X')){j+=2;while(j<len&&/[0-9a-fA-F]/.test(l[j]))j++}else{while(j<len&&(/[0-9.]/.test(l[j])))j++}if(j<len&&/[fFdDlL]/.test(l[j]))j++;o+='<span class="hl-n">'+esc(l.substring(i,j))+'</span>';i=j;continue}
+        if(c==='@'){var j=i+1;while(j<len&&/[a-zA-Z0-9_]/.test(l[j]))j++;o+='<span class="hl-a">'+esc(l.substring(i,j))+'</span>';i=j;continue}
+        if(/[a-zA-Z_$]/.test(c)){var j=i;while(j<len&&/[a-zA-Z0-9_$]/.test(l[j]))j++;var w=l.substring(i,j);if(KW_SET[w]||LITS[w])o+='<span class="hl-k">'+esc(w)+'</span>';else if(TY_SET[w]||/^[A-Z]/.test(w))o+='<span class="hl-t">'+esc(w)+'</span>';else o+=esc(w);i=j;continue}
+        o+=esc(c);i++
+    }
+    return o;
+}
+
+function hl(code){
+    if (!CONTENT_CONFIG.syntaxHighlight) return esc(code);
+    var lines=code.split('\n');
+    while(lines.length&&!lines[0].trim())lines.shift();
+    while(lines.length&&!lines[lines.length-1].trim())lines.pop();
+    return lines.map(hlLine).join('\n');
+}
+
+// ── Config ──
+var CFG = JSON.parse(localStorage.getItem('jmc_cfg') || '{}');
+function openSettings(){document.getElementById('cfgUrl').value=CFG.url||'';document.getElementById('cfgKey').value=CFG.key||'';document.getElementById('cfgModel').value=CFG.model||'';document.getElementById('settingsModal').classList.add('show')}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('show')}
+function saveSettings(){CFG.url=document.getElementById('cfgUrl').value.trim();CFG.key=document.getElementById('cfgKey').value.trim();CFG.model=document.getElementById('cfgModel').value.trim();localStorage.setItem('jmc_cfg',JSON.stringify(CFG));closeSettings()}
+
+// ── App State ──
+var currentLesson=0,quizState={},practiceState={};
+var PROGRESS_KEY='jmc_progress';
+function loadProgress(){try{return JSON.parse(localStorage.getItem(PROGRESS_KEY)||'{}')}catch(e){return{}}}
+function saveProgress(){var p=loadProgress();p.currentLesson=currentLesson;p.quizDone=p.quizDone||{};p.practiceDone=p.practiceDone||{};p.practicePos=p.practicePos||{};localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}
+function markQuizDone(lid,qi){var p=loadProgress();p.quizDone=p.quizDone||{};p.quizDone[lid+'_'+qi]=true;localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}
+function markPracticeDone(lid,pi){var p=loadProgress();p.practiceDone=p.practiceDone||{};p.practiceDone[lid+'_'+pi]=true;localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}
+function savePracticePos(lid,pos){var p=loadProgress();p.practicePos=p.practicePos||{};p.practicePos[lid]=pos;localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}
+
+// ── Sidebar ──
+function renderSidebar(){
+    var sb=document.getElementById('sidebar'),p=loadProgress();
+    var html='<h1>'+CONTENT_CONFIG.topic+'</h1><p class="subtitle">'+CONTENT_CONFIG.subtitle+'</p>';
+    var lastPhase='',totalQ=0,doneQ=0,totalP=0,doneP=0;
+    COURSE.forEach(function(c){
+        if(c.quizzes){totalQ+=c.quizzes.length;c.quizzes.forEach(function(q,qi){if(p.quizDone&&p.quizDone[c.id+'_'+qi])doneQ++})}
+        if(c.practice){totalP+=c.practice.length;c.practice.forEach(function(pr,pi){if(p.practiceDone&&p.practiceDone[c.id+'_'+pi])doneP++})}
+    });
+    var pct=totalQ+totalP>0?Math.round((doneQ+doneP)/(totalQ+totalP)*100):0;
+    html+='<div style="background:var(--bg);border-radius:8px;padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.82rem">';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>学习进度</span><span style="font-weight:600;color:var(--accent)">'+pct+'%</span></div>';
+    html+='<div style="background:var(--border-light);border-radius:4px;height:6px;overflow:hidden"><div style="background:var(--accent);height:100%;width:'+pct+'%;transition:width 0.3s"></div></div>';
+    html+='<div style="margin-top:0.4rem;color:var(--text-muted)">测验 '+doneQ+'/'+totalQ+' · 练习 '+doneP+'/'+totalP+'</div></div>';
+    COURSE.forEach(function(c,i){
+        if(c.phaseName!==lastPhase){html+='<div class="section-title">Phase '+c.phase+'：'+c.phaseName+'</div>';lastPhase=c.phaseName}
+        var lessonDone=true;
+        if(c.quizzes)c.quizzes.forEach(function(q,qi){if(!(p.quizDone&&p.quizDone[c.id+'_'+qi]))lessonDone=false});
+        if(c.practice)c.practice.forEach(function(pr,pi){if(!(p.practiceDone&&p.practiceDone[c.id+'_'+pi]))lessonDone=false});
+        html+='<button class="lesson-btn'+(i===currentLesson?' active':'')+'" onclick="goLesson('+i+')"><span class="num">'+c.id+'. </span>'+(lessonDone?'✅ ':'')+c.title+'</button>';
+    });
+    html+='<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border-light)">';
+    html+='<button class="lesson-btn" style="color:var(--accent3);font-size:0.82rem" onclick="resetProgress()">🗑️ 重置所有进度</button></div>';
+    sb.innerHTML=html;
+}
+
+function resetProgress(){if(confirm('确定要重置所有学习进度吗？')){localStorage.removeItem(PROGRESS_KEY);currentLesson=0;renderSidebar();renderLesson()}}
+
+// ── Render Lesson ──
+function goLesson(idx){currentLesson=idx;saveProgress();renderSidebar();renderLesson();setTimeout(function(){var c=COURSE[currentLesson];restoreAIQuizzes(c.id);restoreAICodefix(c.id);initCodefixEditors(c.id);if(c.quizzes){for(var i=0;i<c.quizzes.length;i++)restoreQuizState(c.id,i)}if(c.practice)restorePracticeState(c.id)},100)}
+
+function renderLesson(){
+    var c=COURSE[currentLesson],m=document.getElementById('main');
+    var html='<h1 style="font-size:1.8rem;color:var(--accent);margin-bottom:0.3rem">'+c.id+'. '+c.title+'</h1>';
+    html+='<p style="color:var(--text-muted);margin-bottom:1.5rem">Phase '+c.phase+'：'+c.phaseName+'</p>';
+    html+=c.content;
+
+    if(c.quizzes&&c.quizzes.length>0){
+        html+='<div class="iq"><h3>⚡ 随堂测验</h3>';
+        c.quizzes.forEach(function(q,qi){
+            html+='<div class="qq" id="q'+c.id+'_'+qi+'"><p><strong>Q'+(qi+1)+':</strong> '+mdInline(q.q)+'</p><div class="qo">';
+            q.opts.forEach(function(opt,oi){html+='<button>'+String.fromCharCode(65+oi)+'. '+mdInline(cleanOpt(opt))+'</button>'});
+            html+='</div><div class="qf" id="qf'+c.id+'_'+qi+'"></div></div>';
+        });
+        html+='</div>';
+        html+='<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-top:1rem;background:rgba(155,142,196,0.02)">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem"><h3 style="color:var(--accent2);margin:0;font-size:1rem">🤖 AI 扩展测验</h3>';
+        html+='<div style="display:flex;gap:0.4rem;align-items:center">';
+        html+='<button class="qa-header-btn" id="aiqPrev'+c.id+'" onclick="aiQuizPage('+c.id+',-1)" style="display:none">◀ 上一页</button>';
+        html+='<span id="aiqPageInfo'+c.id+'" style="font-size:0.78rem;color:var(--text-muted)"></span>';
+        html+='<button class="qa-header-btn" id="aiqNext'+c.id+'" onclick="aiQuizPage('+c.id+',1)" style="display:none">下一页 ▶</button>';
+        html+='<button class="ai-btn outline" style="font-size:0.82rem;padding:0.3rem 0.7rem;margin-left:0.3rem" onclick="aiQuizGen('+c.id+')">再出几题</button>';
+        html+='</div></div><div id="aiQuizArea'+c.id+'"></div></div>';
+    }
+
+    if(c.practice&&c.practice.length>0) html+='<div class="pe" id="practice'+c.id+'"></div>';
+
+    if(CONTENT_CONFIG.codefixEnabled&&c.codefix&&c.codefix.length>0){
+        html+='<div style="margin-top:2rem"><h2 style="color:var(--coral)">🔧 改错练习</h2>';
+        html+='<p style="font-size:0.93rem;color:var(--text-muted);margin-bottom:1rem">下面的代码有错误，找出并修复它。</p>';
+        html+='<div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;background:rgba(199,124,92,0.02)">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem">';
+        html+='<div style="display:flex;gap:0.4rem;align-items:center">';
+        html+='<button class="qa-header-btn" id="cfPrev'+c.id+'" onclick="codefixPage('+c.id+',-1)" style="display:none">◀ 上一页</button>';
+        html+='<span id="cfPageInfo'+c.id+'" style="font-size:0.78rem;color:var(--text-muted)"></span>';
+        html+='<button class="qa-header-btn" id="cfNext'+c.id+'" onclick="codefixPage('+c.id+',1)" style="display:none">下一页 ▶</button>';
+        html+='</div></div><div id="codefixArea'+c.id+'"></div></div>';
+        html+='<div style="margin-top:0.8rem"><button class="ai-btn outline" style="font-size:0.82rem;padding:0.35rem 0.8rem" onclick="aiCodefixGen('+c.id+')">🤖 AI 再出几题</button></div></div>';
+    }
+
+    html+='<div style="margin-top:2rem;padding:1.5rem;background:rgba(155,142,196,0.04);border:1.5px solid var(--lavender);border-radius:10px">';
+    html+='<h3 style="color:var(--accent2);margin-bottom:0.8rem">🤖 AI 出题</h3>';
+    html+='<p style="font-size:0.93rem;color:var(--text-muted);margin-bottom:1rem">让 AI 根据当前课程出题</p>';
+    html+='<div class="ai-bar"><button class="ai-btn" onclick="aiGenerate('+c.id+')">🎲 AI 出一题</button>';
+    html+='<button class="ai-btn outline" onclick="aiExplain('+c.id+')">📖 讲解当前知识点</button></div>';
+    html+='<div id="aiArea'+c.id+'"></div></div>';
+
+    m.innerHTML=html;
+    if(c.practice&&c.practice.length>0) renderPractice(c.id,c.practice);
+    document.querySelectorAll('pre code.language-java').forEach(function(b){b.innerHTML=hl(b.textContent)});
+}
+
+// ── Quiz (event delegation) ──
+document.addEventListener('click',function(e){
+    var btn=e.target.closest('.qo button');if(!btn||btn.disabled)return;
+    var box=btn.closest('.qq');if(!box)return;
+    var m=box.id.match(/^q(\d+)_(\d+)$/);if(!m)return;
+    var lid=parseInt(m[1]),qi=parseInt(m[2]),c=COURSE[lid-1];
+    if(!c||!c.quizzes[qi])return;
+    var q=c.quizzes[qi],fb=document.getElementById('qf'+lid+'_'+qi);
+    if(!fb)return;
+    var btns=box.querySelectorAll('.qo button'),oi=Array.from(btns).indexOf(btn);
+    if(oi===-1)return;
+    if(oi===q.a){btns.forEach(function(b,i){b.disabled=true;if(i===q.a)b.classList.add('correct')});fb.className='qf ok';fb.style.display='block';fb.innerHTML='✅ 正确！'+(q.explain?' '+q.explain:'');markQuizDone(lid,qi,true)}
+    else{btn.disabled=true;btn.classList.add('wrong');fb.className='qf no';fb.style.display='block';fb.innerHTML='❌ 答错了，再试试！'+(q.explain?'<br><span style="font-size:0.85rem;opacity:0.8">提示：'+q.explain+'</span>':'')}
+});
+
+// ── Practice Editor ──
+function renderPractice(lid,items){
+    var container=document.getElementById('practice'+lid);if(!container||!items.length)return;
+    var html='<div class="pe-header"><div class="pe-title">💻 交互练习 <span class="pe-prog" id="pep'+lid+'">1 / '+items.length+'</span></div></div>';
+    html+='<div class="pe-prompt" id="pepr'+lid+'"></div>';
+    if(CONTENT_CONFIG.practiceMode==='code'){
+        html+='<div class="pe-editor"><div class="pe-ln" id="peln'+lid+'">1\n</div><textarea class="pe-ta" id="peta'+lid+'" spellcheck="false"></textarea></div>';
+    }else{
+        html+='<div style="margin-bottom:0.8rem"><textarea id="peta'+lid+'" style="width:100%;min-height:80px;padding:0.8rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;background:var(--bg-code);color:var(--text);outline:none;resize:vertical"></textarea></div>';
+    }
+    html+='<div class="pe-btns"><button class="pe-btn pe-check" onclick="peCheck('+lid+')">检查答案</button>';
+    html+='<button class="pe-btn pe-reset" onclick="peReset('+lid+')">重置</button>';
+    html+='<button class="pe-btn pe-hint" onclick="peHint('+lid+')">💡 提示</button>';
+    html+='<button class="pe-btn pe-ans" onclick="peAnswer('+lid+')">查看答案</button>';
+    html+='<button class="pe-btn pe-next" id="penext'+lid+'" style="display:none" onclick="peNext('+lid+')">下一题 →</button></div>';
+    html+='<div class="pe-fb" id="pefb'+lid+'"></div><div class="pe-rv" id="perv'+lid+'"></div>';
+    container.innerHTML=html;
+    practiceState[lid]={current:0,items:items};
+    peLoad(lid);
+    var ta=document.getElementById('peta'+lid);
+    ta.addEventListener('input',function(){peUpdateLines(lid)});
+    ta.addEventListener('keydown',function(e){peKey(e,lid)});
+}
+
+function peLoad(lid){
+    var s=practiceState[lid],item=s.items[s.current];
+    document.getElementById('pepr'+lid).innerHTML='<strong>第 '+(s.current+1)+' 题：</strong> '+item.prompt;
+    var ta=document.getElementById('peta'+lid);ta.value='';ta.disabled=false;
+    document.getElementById('pefb'+lid).className='pe-fb';
+    document.getElementById('perv'+lid).className='pe-rv';
+    document.getElementById('penext'+lid).style.display='none';
+    document.querySelector('#practice'+lid+' .pe-check').style.display='';
+    document.getElementById('pep'+lid).textContent=(s.current+1)+' / '+s.items.length;
+    peUpdateLines(lid);ta.focus();
+}
+
+function peUpdateLines(lid){
+    if(CONTENT_CONFIG.practiceMode!=='code')return;
+    var ta=document.getElementById('peta'+lid),ln=document.getElementById('peln'+lid);
+    if(!ta||!ln)return;
+    var lines=ta.value.split('\n'),h='';for(var i=1;i<=lines.length;i++)h+=i+'\n';ln.textContent=h;
+}
+
+function peKey(e,lid){
+    if(CONTENT_CONFIG.practiceMode!=='code')return;
+    var ta=document.getElementById('peta'+lid);if(!ta)return;
+    var s=ta.selectionStart,end=ta.selectionEnd,val=ta.value;
+    if(e.key==='Tab'){e.preventDefault();ta.value=val.substring(0,s)+'    '+val.substring(end);ta.selectionStart=ta.selectionEnd=s+4;peUpdateLines(lid);return}
+    var pairs={'(':')','{':'}','[':']','"':'"',"'":"'"};
+    if(pairs[e.key]&&s===end){e.preventDefault();ta.value=val.substring(0,s)+e.key+pairs[e.key]+val.substring(end);ta.selectionStart=ta.selectionEnd=s+1}
+    if(e.key==='Enter'){e.preventDefault();var ls=val.lastIndexOf('\n',s-1)+1,indent='';for(var k=ls;k<s&&(val[k]===' '||val[k]==='\t');k++)indent+=val[k];var extra=(val.substring(0,s).replace(/\s+$/,'').slice(-1)==='{')?'    ':'';ta.value=val.substring(0,s)+'\n'+indent+extra+val.substring(end);ta.selectionStart=ta.selectionEnd=s+1+indent.length+extra.length;peUpdateLines(lid)}
+}
+
+function peCheckBrackets(code){
+    var st=[],pairs={'(':')','{':'}','[':']'};
+    for(var i=0;i<code.length;i++){var c=code[i];
+        if(c==='/'&&i+1<code.length&&code[i+1]==='/'){while(i<code.length&&code[i]!=='\n')i++;continue}
+        if('({['.indexOf(c)!==-1){st.push(c);continue}
+        if('})]'.indexOf(c)!==-1){if(st.length===0)return'多余的 '+c;var top=st.pop();if(pairs[top]!==c)return top+' 和 '+c+' 不匹配'}
+    }
+    if(st.length>0)return st[st.length-1]+' 没有闭合';return null;
+}
+
+function peNormalize(code){return code.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').map(function(l){return l.trim()}).filter(function(l){return l.length>0}).join('\n')}
+
+function peCheck(lid){
+    var s=practiceState[lid],item=s.items[s.current],code=document.getElementById('peta'+lid).value,fb=document.getElementById('pefb'+lid);
+    if(!code.trim()){fb.className='pe-fb show no';fb.innerHTML='请先写点内容～';return}
+    if(CONTENT_CONFIG.practiceMode==='code'){var brErr=peCheckBrackets(code);if(brErr){fb.className='pe-fb show no';fb.innerHTML='括号问题：'+brErr;return}}
+    // Support multiple answers separated by |
+    var answers=item.answer.split('|').map(function(a){return peNormalize(a)});
+    var normalized=peNormalize(code);
+    if(answers.indexOf(normalized)!==-1){
+        fb.className='pe-fb show ok';fb.innerHTML='✅ 完全正确！(☆▽☆)';
+        document.getElementById('peta'+lid).disabled=true;
+        document.querySelector('#practice'+lid+' .pe-check').style.display='none';
+        document.getElementById('penext'+lid).style.display='';
+        markPracticeDone(lid,s.current);
+        if(item.review){var rv=document.getElementById('perv'+lid);rv.innerHTML='<div class="pe-rv-title">📝 解析</div><pre><code>'+esc(item.review)+'</code></pre>';rv.className='pe-rv show';rv.querySelectorAll('code').forEach(function(b){b.innerHTML=hl(b.textContent)})}
+    }else{
+        var el=answers[0].split('\n'),ul=normalized.split('\n');
+        var msg='有差异：你 '+ul.length+' 行，答案 '+el.length+' 行';
+        for(var i=0;i<Math.min(ul.length,el.length);i++){if(ul[i]!==el[i]){msg+='<br>第 '+(i+1)+' 行不同';break}}
+        fb.className='pe-fb show no';fb.innerHTML=msg;
+    }
+}
+
+function peHint(lid){var fb=document.getElementById('pefb'+lid);fb.className='pe-fb show hint';fb.innerHTML='💡 '+practiceState[lid].items[practiceState[lid].current].hint}
+function peAnswer(lid){var s=practiceState[lid],fb=document.getElementById('pefb'+lid);fb.className='pe-fb show hint';fb.innerHTML='参考答案：<pre><code>'+esc(s.items[s.current].answer.split('|')[0])+'</code></pre>';fb.querySelectorAll('code').forEach(function(b){b.innerHTML=hl(b.textContent)})}
+function peReset(lid){peLoad(lid)}
+function peNext(lid){var s=practiceState[lid];if(s.current<s.items.length-1){s.current++;savePracticePos(lid,s.current);peLoad(lid)}else{var fb=document.getElementById('pefb'+lid);fb.className='pe-fb show ok';fb.innerHTML='所有练习完成！(≧▽≦)';document.getElementById('penext'+lid).style.display='none'}}
+
+function restorePracticeState(lid){
+    var p=loadProgress();if(!p.practiceDone)return;
+    var s=practiceState[lid];if(!s)return;
+    var maxDone=-1;for(var i=0;i<s.items.length;i++){if(p.practiceDone[lid+'_'+i])maxDone=i}
+    var savedPos=(p.practicePos&&p.practicePos[lid])||0;
+    var startPos=Math.max(maxDone+1,savedPos);
+    if(startPos>=s.items.length)startPos=s.items.length-1;
+    s.current=startPos;peLoad(lid);
+}
+
+// ── Codefix ──
+var codefixPages={};
+function codefixPage(lid,dir){codefixPages[lid]=(codefixPages[lid]||0)+dir;renderCodefixPage(lid)}
+function initCodefixEditors(lid){renderCodefixPage(lid)}
+
+function renderCodefixPage(lid){
+    var c=COURSE[lid-1];if(!c.codefix||!c.codefix.length)return;
+    var perPage=3,totalPages=Math.ceil(c.codefix.length/perPage),page=Math.max(0,Math.min(codefixPages[lid]||0,totalPages-1));
+    codefixPages[lid]=page;
+    var area=document.getElementById('codefixArea'+lid),start=page*perPage,end=Math.min(start+perPage,c.codefix.length),html='';
+    for(var fi=start;fi<end;fi++){var cf=c.codefix[fi];
+        html+='<div class="qq" style="margin-bottom:1rem" id="cf'+lid+'_'+fi+'">';
+        html+='<p><strong>第 '+(fi+1)+' 题：</strong> '+mdInline(cf.prompt)+'</p>';
+        html+='<div style="margin:0.5rem 0"><span style="font-size:0.82rem;color:var(--accent3)">❌ 错误内容：</span>';
+        html+='<pre style="margin:0.3rem 0;background:rgba(199,92,92,0.04)"><code>'+esc(cf.buggy)+'</code></pre></div>';
+        html+='<div style="margin:0.5rem 0"><span style="font-size:0.82rem;color:var(--accent)">✏️ 你的修复：</span>';
+        html+='<div class="pe-editor" style="margin:0.3rem 0"><div class="pe-ln" id="cfln'+lid+'_'+fi+'">1\n</div>';
+        html+='<textarea class="pe-ta" id="cfta'+lid+'_'+fi+'" style="min-height:80px" spellcheck="false"></textarea></div></div>';
+        html+='<div class="pe-btns"><button class="pe-btn pe-check" onclick="codefixCheck('+lid+','+fi+')">检查修复</button>';
+        html+='<button class="pe-btn pe-hint" onclick="codefixHint('+lid+','+fi+')">💡 提示</button>';
+        html+='<button class="pe-btn pe-ans" onclick="codefixAnswer('+lid+','+fi+')">查看答案</button></div>';
+        html+='<div class="pe-fb" id="cffb'+lid+'_'+fi+'"></div><div class="pe-rv" id="cfrv'+lid+'_'+fi+'"></div></div>';
+    }
+    area.innerHTML=html;
+    area.querySelectorAll('pre code').forEach(function(b){b.innerHTML=hl(b.textContent)});
+    for(var fi=start;fi<end;fi++){var ta=document.getElementById('cfta'+lid+'_'+fi),ln=document.getElementById('cfln'+lid+'_'+fi);if(ta){ta.addEventListener('input',function(){if(ln){var l=this.value.split('\n'),h='';for(var i=1;i<=l.length;i++)h+=i+'\n';ln.textContent=h}});ta.addEventListener('keydown',function(e){var s=this.selectionStart,end=this.selectionEnd,val=this.value;if(e.key==='Tab'){e.preventDefault();this.value=val.substring(0,s)+'    '+val.substring(end);this.selectionStart=this.selectionEnd=s+4}})}}
+    var prev=document.getElementById('cfPrev'+lid),next=document.getElementById('cfNext'+lid),info=document.getElementById('cfPageInfo'+lid);
+    prev.style.display=page>0?'':'none';next.style.display=page<totalPages-1?'':'none';info.textContent=(page+1)+' / '+totalPages;
+}
+
+function codefixCheck(lid,fi){var c=COURSE[lid-1],cf=c.codefix[fi],ta=document.getElementById('cfta'+lid+'_'+fi),fb=document.getElementById('cffb'+lid+'_'+fi),code=ta.value;if(!code.trim()){fb.className='pe-fb show no';fb.innerHTML='请先写修复内容～';return}if(peNormalize(code)===peNormalize(cf.fixed)){fb.className='pe-fb show ok';fb.innerHTML='✅ 修复正确！(☆▽☆)';ta.disabled=true;if(cf.review){var rv=document.getElementById('cfrv'+lid+'_'+fi);rv.innerHTML='<div class="pe-rv-title">📝 解析</div><pre><code>'+esc(cf.review)+'</code></pre>';rv.className='pe-rv show';rv.querySelectorAll('code').forEach(function(b){b.innerHTML=hl(b.textContent)})}var p=loadProgress();p.codefixDone=p.codefixDone||{};p.codefixDone[lid+'_'+fi]=true;localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}else{fb.className='pe-fb show no';fb.innerHTML='❌ 还没修对'}}
+function codefixHint(lid,fi){var fb=document.getElementById('cffb'+lid+'_'+fi);fb.className='pe-fb show hint';fb.innerHTML='💡 '+mdInline(COURSE[lid-1].codefix[fi].hint)}
+function codefixAnswer(lid,fi){var fb=document.getElementById('cffb'+lid+'_'+fi);fb.className='pe-fb show hint';fb.innerHTML='参考答案：<pre><code>'+esc(COURSE[lid-1].codefix[fi].fixed)+'</code></pre>';fb.querySelectorAll('code').forEach(function(b){b.innerHTML=hl(b.textContent)})}
+
+function saveAICodefix(lid,q){var p=loadProgress();p.aiCodefix=p.aiCodefix||{};p.aiCodefix[lid]=(p.aiCodefix[lid]||[]).concat(q);localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}
+function loadAICodefix(lid){var p=loadProgress();return(p.aiCodefix&&p.aiCodefix[lid])||[]}
+function restoreAICodefix(lid){var saved=loadAICodefix(lid);if(!saved.length)return;var c=COURSE[lid-1];saved.forEach(function(q){c.codefix.push(q)});renderCodefixPage(lid)}
+
+function aiCodefixGen(lid){var c=COURSE[lid-1],area=document.getElementById('codefixArea'+lid),ld=document.createElement('div');ld.id='aiCodefixLoading';ld.className='ai-status';ld.textContent='⏳ AI 正在出题...';area.appendChild(ld);var existingQ=c.codefix.map(function(cf){return cf.prompt}).join('\n');aiCall([{role:'system',content:AI_CONFIG.quizGenPrompt.replace('选择题','改错练习题')+'\nJSON：[{"prompt":"题目","buggy":"错误代码","fixed":"正确代码","hint":"提示","review":"解析"}]'},{role:'user',content:'第'+lid+'课「'+c.title+'」\n内容：'+c.content.replace(/<[^>]+>/g,'').substring(0,600)+'\n\n已有：\n'+existingQ}],function(result,err){var l=document.getElementById('aiCodefixLoading');if(l)l.remove();if(err){area.innerHTML+='<div style="color:var(--accent3);font-size:0.85rem">❌ '+err+'</div>';return}try{var questions=JSON.parse(result.match(/\[[\s\S]*\]/)[0]);questions.forEach(function(q){q.ai=true});saveAICodefix(lid,questions);questions.forEach(function(q){c.codefix.push(q)});var tp=Math.ceil(c.codefix.length/3);codefixPages[lid]=tp-1;renderCodefixPage(lid)}catch(ex){area.innerHTML+='<div style="color:var(--accent3);font-size:0.85rem">❌ 解析失败</div>'}})}
+
+// ── AI Integration ──
+function detectProtocol(url){if(/anthropic/i.test(url))return'anthropic';return'openai'}
+function normalizeUrl(url,proto){if(proto==='anthropic'){if(!/\/v1\/messages\/?$/.test(url)){url=url.replace(/\/+$/,'');if(!/\/v1$/.test(url))url+='/v1';url+='/messages'}return url}if(!/\/chat\/completions\/?$/.test(url)){url=url.replace(/\/+$/,'');if(!/\/v1$/.test(url))url+='/v1';url+='/chat/completions'}return url}
+function getHeaders(key,proto){if(proto==='anthropic')return{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'};return{'Content-Type':'application/json','Authorization':'Bearer '+key}}
+function buildRequestBody(proto,model,msgs){if(proto==='anthropic'){var sys='',user=[];msgs.forEach(function(m){if(m.role==='system')sys+=m.content+'\n';else user.push({role:m.role,content:m.content})});var body={model:model,messages:user};if(sys.trim())body.system=sys.trim();return body}return{model:model,messages:msgs}}
+function extractReply(proto,data){if(proto==='anthropic'){if(data.content&&data.content[0]&&data.content[0].text)return data.content[0].text;return null}if(data.choices&&data.choices[0]&&data.choices[0].message){var msg=data.choices[0].message;if(msg.content&&msg.content.trim())return msg.content;if(msg.reasoning_content&&msg.reasoning_content.trim())return'[思考过程]\n'+msg.reasoning_content+'\n\n[提示] 正式回答被截断，请重试';if(data.choices[0].finish_reason==='length')return null;return null}return null}
+
+function aiCall(messages,callback){
+    if(!CFG.url||!CFG.key){callback(null,'请先在右上角 ⚙️ 设置中配置 API');return}
+    var proto=detectProtocol(CFG.url),finalUrl=normalizeUrl(CFG.url,proto),headers=getHeaders(CFG.key,proto),body=buildRequestBody(proto,CFG.model||'mimo-v2.5-pro',messages);
+    fetch(finalUrl,{method:'POST',headers:headers,body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(d){var reply=extractReply(proto,d);if(reply)callback(reply,null);else if(d.error)callback(null,'API 错误：'+(d.error.message||JSON.stringify(d.error)));else callback(null,'API 返回异常：'+JSON.stringify(d).substring(0,500))}).catch(function(e){callback(null,'请求失败：'+e.message)})
+}
+
+// ── AI Quiz ──
+var aiQuizPages={};
+function saveAIQuizzes(lid,q){var p=loadProgress();p.aiQuizzes=p.aiQuizzes||{};p.aiQuizzes[lid]=(p.aiQuizzes[lid]||[]).concat(q);localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}
+function loadAIQuizzes(lid){var p=loadProgress();return(p.aiQuizzes&&p.aiQuizzes[lid])||[]}
+function restoreAIQuizzes(lid){var saved=loadAIQuizzes(lid);if(!saved.length)return;var c=COURSE[lid-1];saved.forEach(function(q){c.quizzes.push(q)});renderAIQuizPage(lid)}
+function cleanOpt(text){return text.replace(/^[A-Da-d0-9][\.\)）、]\s*/,'')}
+function renderQuizItem(lid,qi,q){var html='<div class="qq" id="q'+lid+'_'+qi+'"><p><strong>Q'+(qi+1)+(q.ai?' [AI]':'')+':</strong> '+mdInline(q.q)+'</p><div class="qo">';q.opts.forEach(function(opt,oi){html+='<button>'+String.fromCharCode(65+oi)+'. '+mdInline(cleanOpt(opt))+'</button>'});html+='</div><div class="qf" id="qf'+lid+'_'+qi+'"></div></div>';return html}
+
+function aiQuizPage(lid,dir){aiQuizPages[lid]=(aiQuizPages[lid]||0)+dir;renderAIQuizPage(lid)}
+function renderAIQuizPage(lid){var saved=loadAIQuizzes(lid);if(!saved.length)return;var perPage=3,tp=Math.ceil(saved.length/perPage),page=Math.max(0,Math.min(aiQuizPages[lid]||0,tp-1));aiQuizPages[lid]=page;var area=document.getElementById('aiQuizArea'+lid),c=COURSE[lid-1],base=c.quizzes.length-saved.length,start=page*perPage,end=Math.min(start+perPage,saved.length),html='';for(var i=start;i<end;i++)html+=renderQuizItem(lid,base+i,saved[i]);area.innerHTML=html;var prev=document.getElementById('aiqPrev'+lid),next=document.getElementById('aiqNext'+lid),info=document.getElementById('aiqPageInfo'+lid);prev.style.display=page>0?'':'none';next.style.display=page<tp-1?'':'none';info.textContent=(page+1)+' / '+tp;for(var i=start;i<end;i++)restoreQuizState(lid,base+i)}
+
+function aiQuizGen(lid){var c=COURSE[lid-1],area=document.getElementById('aiQuizArea'+lid),ld=document.createElement('div');ld.id='aiQuizLoading';ld.className='ai-status';ld.textContent='⏳ AI 正在出题...';area.appendChild(ld);var existingQ=c.quizzes.map(function(q){return q.q}).join('\n');aiCall([{role:'system',content:AI_CONFIG.quizGenPrompt},{role:'user',content:'第'+lid+'课「'+c.title+'」\n内容：'+c.content.replace(/<[^>]+>/g,'').substring(0,600)+'\n\n已有：\n'+existingQ}],function(result,err){var l=document.getElementById('aiQuizLoading');if(l)l.remove();if(err){area.innerHTML+='<div style="color:var(--accent3);font-size:0.85rem">❌ '+err+'</div>';return}try{var questions=JSON.parse(result.match(/\[[\s\S]*\]/)[0]);var base=c.quizzes.length,html='',toSave=[];questions.forEach(function(q,i){var quizData={q:q.q,opts:q.opts,a:q.a,explain:q.explain,ai:true};c.quizzes.push(quizData);toSave.push(quizData)});saveAIQuizzes(lid,toSave);renderAIQuizPage(lid)}catch(ex){area.innerHTML+='<div style="color:var(--accent3);font-size:0.85rem">❌ 解析失败</div>'}})}
+
+function restoreQuizState(lid,qi){var p=loadProgress(),key=lid+'_'+qi;if(p.quizDone&&p.quizDone[key]===true){var c=COURSE[lid-1];if(!c||!c.quizzes[qi])return;var q=c.quizzes[qi],box=document.getElementById('q'+lid+'_'+qi),fb=document.getElementById('qf'+lid+'_'+qi);if(!box||!fb)return;var btns=box.querySelectorAll('.qo button');btns.forEach(function(b,i){b.disabled=true;if(i===q.a)b.classList.add('correct')});fb.className='qf ok';fb.style.display='block';fb.innerHTML='✅ 正确！'+(q.explain?' '+q.explain:'')}}
+
+// ── AI Generate & Explain ──
+function aiGenerate(lid){var c=COURSE[lid-1],area=document.getElementById('aiArea'+lid);var p=loadProgress();if(p.aiQuestions&&p.aiQuestions[lid]){renderAIQuestion(lid,p.aiQuestions[lid],area,true);return}area.innerHTML='<div class="ai-status">⏳ AI 正在出题...</div>';aiCall([{role:'system',content:AI_CONFIG.exerciseGenPrompt},{role:'user',content:'第'+lid+'课「'+c.title+'」\n内容：'+c.content.replace(/<[^>]+>/g,'').substring(0,800)}],function(result,err){if(err){area.innerHTML='<div class="ai-status" style="color:var(--accent3)">❌ '+err+'</div>';return}try{var json=JSON.parse(result.match(/\{[\s\S]*\}/)[0]);var prog=loadProgress();prog.aiQuestions=prog.aiQuestions||{};prog.aiQuestions[lid]=json;localStorage.setItem(PROGRESS_KEY,JSON.stringify(prog));renderAIQuestion(lid,json,area,false)}catch(ex){area.innerHTML='<div class="pe" style="margin:1rem 0"><div class="pe-prompt"><strong>🤖 AI 回复：</strong></div><pre><code>'+esc(result)+'</code></pre></div>'}})}
+
+function renderAIQuestion(lid,json,area,cached){
+    var tag=cached?' <span style="font-size:0.75rem;color:var(--text-muted)">(已缓存)</span>':'';
+    var isCode=CONTENT_CONFIG.practiceMode==='code';
+    var editorHtml=isCode?'<div class="pe-editor"><div class="pe-ln" id="ailn">1\n</div><textarea class="pe-ta" id="aita" spellcheck="false"></textarea></div>':'<textarea id="aita" style="width:100%;min-height:80px;padding:0.8rem;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;background:var(--bg-code);outline:none;resize:vertical"></textarea>';
+    area.innerHTML='<div class="pe" style="margin:1rem 0"><div class="pe-prompt"><strong>🤖 AI 出题'+tag+'：</strong> '+md(json.prompt)+'</div>'+editorHtml+
+        '<div class="pe-btns"><button class="pe-btn pe-check" onclick="aiCheck()">检查答案</button><button class="pe-btn pe-hint" onclick="aiHint()">💡 提示</button><button class="pe-btn pe-ans" onclick="aiShowAnswer()">查看答案</button><button class="pe-btn pe-reset" onclick="aiRegenerate('+lid+')">🔄 重新出题</button></div><div class="pe-fb" id="aifb"></div><div class="pe-rv" id="airv"></div></div>';
+    window._aiQ=json;
+    var aita=document.getElementById('aita');
+    if(isCode){aita.addEventListener('input',function(){var l=this.value.split('\n'),h='';for(var i=1;i<=l.length;i++)h+=i+'\n';document.getElementById('ailn').textContent=h});aita.addEventListener('keydown',function(e){peKey(e,null,aita)})}
+}
+
+function aiRegenerate(lid){var prog=loadProgress();if(prog.aiQuestions){delete prog.aiQuestions[lid];localStorage.setItem(PROGRESS_KEY,JSON.stringify(prog))}aiGenerate(lid)}
+function aiCheck(){var q=window._aiQ;if(!q)return;var code=document.getElementById('aita').value,fb=document.getElementById('aifb');if(!code.trim()){fb.className='pe-fb show no';fb.innerHTML='请先写答案～';return}var answers=q.answer.split('|').map(function(a){return peNormalize(a)});if(answers.indexOf(peNormalize(code))!==-1){fb.className='pe-fb show ok';fb.innerHTML='✅ 正确！(☆▽☆)';document.getElementById('aita').disabled=true;if(q.review){var rv=document.getElementById('airv');rv.innerHTML='<div class="pe-rv-title">📝 解析</div><pre><code>'+esc(q.review)+'</code></pre>';rv.className='pe-rv show';rv.querySelectorAll('code').forEach(function(b){b.innerHTML=hl(b.textContent)})}}else{fb.className='pe-fb show no';fb.innerHTML='和答案不一致，试试提示'}}
+function aiHint(){var fb=document.getElementById('aifb');fb.className='pe-fb show hint';fb.innerHTML='💡 '+md(window._aiQ.hint)}
+function aiShowAnswer(){var fb=document.getElementById('aifb');fb.className='pe-fb show hint';fb.innerHTML='参考答案：<pre><code>'+esc(window._aiQ.answer.split('|')[0])+'</code></pre>';fb.querySelectorAll('code').forEach(function(b){b.innerHTML=hl(b.textContent)})}
+
+function aiExplain(lid){var c=COURSE[lid-1],area=document.getElementById('aiArea'+lid);var p=loadProgress();if(p.aiExplain&&p.aiExplain[lid]){area.innerHTML='<div class="mc" style="margin:1rem 0"><h3>📖 AI 讲解 (已缓存)</h3>'+md(p.aiExplain[lid])+'</div>';return}area.innerHTML='<div class="ai-status">⏳ AI 正在讲解...</div>';aiCall([{role:'system',content:AI_CONFIG.explainPrompt},{role:'user',content:'请讲解第'+lid+'课「'+c.title+'」的核心知识点。'}],function(result,err){if(err){area.innerHTML='<div class="ai-status" style="color:var(--accent3)">❌ '+err+'</div>';return}area.innerHTML='<div class="mc" style="margin:1rem 0"><h3>📖 AI 讲解 (已缓存)</h3>'+md(result)+'</div>';var prog=loadProgress();prog.aiExplain=prog.aiExplain||{};prog.aiExplain[lid]=result;localStorage.setItem(PROGRESS_KEY,JSON.stringify(prog))})}
+
+// ── Skill Management ──
+var SKILLS_KEY='jmc_skills';
+function getInstalledSkills(){try{return JSON.parse(localStorage.getItem(SKILLS_KEY)||'[]')}catch(e){return[]}}
+function saveInstalledSkills(s){localStorage.setItem(SKILLS_KEY,JSON.stringify(s))}
+function openSkillMgr(){document.getElementById('skillModal').classList.add('show');renderInstalledSkills()}
+function closeSkillMgr(){document.getElementById('skillModal').classList.remove('show')}
+function renderInstalledSkills(){var skills=getInstalledSkills(),el=document.getElementById('skillInstalled');if(!skills.length){el.innerHTML='<div style="font-size:0.85rem;color:var(--text-muted)">暂无已安装的 Skill</div>';return}var html='';skills.forEach(function(s,i){html+='<div class="skill-item"><div class="skill-item-info"><div class="skill-item-name">'+esc(s.name)+'</div><div class="skill-item-desc">'+esc(s.description||'无描述')+' · '+esc(s.repo)+'</div></div><span class="skill-installed">已安装</span><button class="skill-remove" onclick="skillRemove('+i+')">卸载</button></div>'});el.innerHTML=html}
+function skillRemove(idx){var skills=getInstalledSkills();if(!confirm('确定卸载「'+skills[idx].name+'」？'))return;skills.splice(idx,1);saveInstalledSkills(skills);renderInstalledSkills()}
+function parseRepoUrl(input){input=input.trim().replace(/\/+$/,'');var m=input.match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);if(m)return{owner:m[1],repo:m[2]};m=input.match(/^([^\/]+)\/([^\/]+)$/);if(m)return{owner:m[1],repo:m[2]};return null}
+
+function skillScan(){var input=document.getElementById('skillRepo').value,branch=document.getElementById('skillBranch').value.trim(),parsed=parseRepoUrl(input),el=document.getElementById('skillScanResult');if(!parsed){el.innerHTML='<div style="color:var(--accent3);font-size:0.85rem">❌ 无法解析地址</div>';return}el.innerHTML='<div class="ai-status">⏳ 扫描中...</div>';var getBranch=branch?Promise.resolve(branch):fetch('https://api.github.com/repos/'+parsed.owner+'/'+parsed.repo).then(function(r){return r.json()}).then(function(d){return d.default_branch||'master'});getBranch.then(function(br){return fetch('https://api.github.com/repos/'+parsed.owner+'/'+parsed.repo+'/git/trees/'+br+'?recursive=1').then(function(r){return r.json()}).then(function(tree){if(!tree.tree){el.innerHTML='<div style="color:var(--accent3);font-size:0.85rem">❌ 无法获取仓库内容</div>';return}var paths=tree.tree.filter(function(f){return f.path.match(/SKILL\.md$/)&&f.type==='blob'});if(!paths.length){el.innerHTML='<div style="color:var(--accent3);font-size:0.85rem">❌ 未找到 SKILL.md</div>';return}var installed=getInstalledSkills();var fetches=paths.map(function(sp){var dir=sp.path.replace('/SKILL.md','');return fetch('https://api.github.com/repos/'+parsed.owner+'/'+parsed.repo+'/contents/'+sp.path+'?ref='+br).then(function(r){return r.json()}).then(function(d){var content=atob(d.content||'');var nm=content.match(/name:\s*(.+)/),dm=content.match(/description:\s*(.+)/);return{name:nm?nm[1].trim():dir.split('/').pop(),desc:dm?dm[1].trim().substring(0,100):'',path:dir,isInstalled:installed.some(function(s){return s.name===(nm?nm[1].trim():'')&&s.repo===parsed.owner+'/'+parsed.repo})}})});Promise.all(fetches).then(function(skills){var html='<div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem">找到 '+skills.length+' 个 Skill：</div><div class="skill-list">';skills.forEach(function(s,i){html+='<div class="skill-item">';if(s.isInstalled){html+='<div class="skill-item-info"><div class="skill-item-name">'+esc(s.name)+'</div><div class="skill-item-desc">'+esc(s.desc)+'</div></div><span class="skill-installed">已安装</span>'}else{html+='<input type="checkbox" id="skillCheck'+i+'" checked><div class="skill-item-info"><div class="skill-item-name">'+esc(s.name)+'</div><div class="skill-item-desc">'+esc(s.desc)+'</div></div>'}html+='</div>'});html+='</div><div class="btn-row" style="margin-top:0.8rem"><button class="btn btn-primary" onclick="skillInstall(\''+esc(parsed.owner+'/'+parsed.repo)+'\',\''+esc(br)+'\')">安装选中</button></div>';el.innerHTML=html;window._skillScanResult={repo:parsed.owner+'/'+parsed.repo,branch:br,skills:skills}})})}).catch(function(e){el.innerHTML='<div style="color:var(--accent3);font-size:0.85rem">❌ '+e.message+'</div>'})}
+
+function skillInstall(repo,branch){var scan=window._skillScanResult;if(!scan)return;var toInstall=[];scan.skills.forEach(function(s,i){if(!s.isInstalled){var cb=document.getElementById('skillCheck'+i);if(cb&&cb.checked)toInstall.push(s)}});if(!toInstall.length){alert('请至少选择一个');return}var el=document.getElementById('skillScanResult');el.innerHTML='<div class="ai-status">⏳ 下载中...</div>';var fetches=toInstall.map(function(s){return fetch('https://api.github.com/repos/'+repo+'/contents/'+s.path+'/SKILL.md?ref='+branch).then(function(r){return r.json()}).then(function(d){var content=atob(d.content||'');return fetch('https://api.github.com/repos/'+repo+'/contents/'+s.path+'/references?ref='+branch).then(function(r){return r.ok?r.json():[]}).then(function(refs){if(!Array.isArray(refs))refs=[];return Promise.all(refs.filter(function(f){return f.name.endsWith('.md')}).map(function(f){return fetch(f.download_url).then(function(r){return r.text()}).then(function(t){return{name:f.name,content:t}})})).then(function(rc){return{name:s.name,description:s.desc,repo:repo,branch:branch,skill:content,references:rc,installed:Date.now()}})})})});Promise.all(fetches).then(function(installed){var existing=getInstalledSkills();installed.forEach(function(s){existing=existing.filter(function(e){return!(e.name===s.name&&e.repo===s.repo)});existing.push(s)});saveInstalledSkills(existing);renderInstalledSkills();el.innerHTML='<div style="color:var(--accent);font-size:0.85rem">✅ 安装成功！</div>';window._skillScanResult=null}).catch(function(e){el.innerHTML='<div style="color:var(--accent3);font-size:0.85rem">❌ '+e.message+'</div>'})}
+
+function getSkillContext(){var skills=getInstalledSkills();if(!skills.length)return'';var ctx='\n\n[已安装 Skill]\n';skills.forEach(function(s){ctx+='\n--- '+s.name+' ---\n'+s.skill.substring(0,1500)+'\n';if(s.references)s.references.forEach(function(r){ctx+='['+r.name+']\n'+r.content.substring(0,800)+'\n'})});return ctx}
+
+// ── Q&A Module ──
+var qaConversations=[],qaCurrentConv=0;
+function qaInit(){var saved=localStorage.getItem('jmc_qa_convs');if(saved)try{qaConversations=JSON.parse(saved)}catch(e){qaConversations=[]}if(!qaConversations.length)qaConversations.push({title:'新会话',messages:[],created:Date.now()});qaCurrentConv=qaConversations.length-1;qaRenderMessages();renderQuickBtns()}
+function qaSave(){localStorage.setItem('jmc_qa_convs',JSON.stringify(qaConversations))}
+function qaNew(){qaConversations.push({title:'新会话',messages:[],created:Date.now()});qaCurrentConv=qaConversations.length-1;qaSave();qaRenderMessages()}
+function qaClear(){if(!confirm('确定清空？'))return;qaConversations[qaCurrentConv].messages=[];qaSave();qaRenderMessages()}
+function qaHistory(){var box=document.getElementById('qaMessages'),html='<div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.8rem">点击切换会话：</div>';qaConversations.forEach(function(c,i){html+='<div class="qa-msg ai" style="cursor:pointer;margin-bottom:0.5rem'+(i===qaCurrentConv?';border-color:var(--accent2)':'')+'" onclick="qaSwitch('+i+')"><strong>'+esc(c.title)+'</strong><br><span style="font-size:0.78rem;color:var(--text-muted)">'+new Date(c.created).toLocaleString('zh-CN')+' · '+c.messages.length+' 条</span>'+(i===qaCurrentConv?' ← 当前':'')+'</div>'});box.innerHTML=html}
+function qaSwitch(idx){qaCurrentConv=idx;qaRenderMessages()}
+function qaCompress(){var conv=qaConversations[qaCurrentConv];if(conv.messages.length<2){alert('会话太短');return}qaAddMsg('⏳ 压缩中...','ai',true);var hist='';conv.messages.forEach(function(m){hist+=(m.role==='user'?'用户':'AI')+'：'+m.content+'\n\n'});aiCall([{role:'system',content:AI_CONFIG.compressPrompt},{role:'user',content:'压缩以下对话：\n\n'+hist}],function(result,err){qaRemoveLoading();if(err){qaAddMsg('❌ '+err,'ai');return}conv.title='压缩 · '+new Date().toLocaleTimeString('zh-CN');conv.messages=[{role:'user',content:'[摘要]\n'+result},{role:'assistant',content:'✅ 已压缩'}];qaSave();qaRenderMessages();qaAddMsg('✅ 会话已压缩！','ai')})}
+
+function renderQuickBtns(){var el=document.getElementById('qaQuick'),html='';AI_CONFIG.quickQuestions.forEach(function(q){html+='<button class="qa-quick-btn" onclick="qaQuick(\''+q.text.replace(/'/g,"\\'")+'\')">'+q.label+'</button>'});el.innerHTML=html}
+
+function qaRenderMessages(){var box=document.getElementById('qaMessages'),conv=qaConversations[qaCurrentConv];if(!conv||!conv.messages.length){box.innerHTML='<div class="qa-msg ai" style="font-size:0.85rem;color:var(--text-muted)">你好！有什么问题可以问我。</div>';return}var html='';conv.messages.forEach(function(m){var type=m.role==='user'?'user':'ai';html+='<div class="qa-msg '+(type==='ai'?'ai':'user')+'">'+(type==='ai'?md(m.content):esc(m.content))+'</div>'});box.innerHTML=html;box.querySelectorAll('pre code').forEach(function(b){b.innerHTML=hl(b.textContent)});box.scrollTop=box.scrollHeight}
+
+function qaAsk(){var input=document.getElementById('qaInput'),q=input.value.trim();if(!q)return;input.value='';var conv=qaConversations[qaCurrentConv];conv.messages.push({role:'user',content:q});if(conv.messages.length===1)conv.title=q.substring(0,20);qaSave();qaAddMsg(q,'user');qaAddMsg('⏳ 思考中...','ai',true);var c=COURSE[currentLesson],context='用户正在学习第'+c.id+'课「'+c.title+'」';var skillCtx=getSkillContext();var apiMsgs=[{role:'system',content:AI_CONFIG.qaSystemPrompt+skillCtx}];conv.messages.forEach(function(m){apiMsgs.push({role:m.role,content:m.content})});apiMsgs[apiMsgs.length-1]={role:'user',content:context+'\n\n问题：'+q};aiCall(apiMsgs,function(result,err){qaRemoveLoading();if(err){qaAddMsg('❌ '+err,'ai');return}conv.messages.push({role:'assistant',content:result});qaSave();qaAddMsg(result,'ai')})}
+
+function qaQuick(q){document.getElementById('qaInput').value=q;qaAsk()}
+function qaAddMsg(text,type,isLoading){var box=document.getElementById('qaMessages'),div=document.createElement('div');div.className='qa-msg '+(type==='user'?'user':'ai');if(isLoading)div.id='qaLoading';if(type==='ai'){div.innerHTML=md(text);div.querySelectorAll('pre code').forEach(function(b){b.innerHTML=hl(b.textContent)})}else{div.textContent=text}box.appendChild(div);box.scrollTop=box.scrollHeight}
+function qaRemoveLoading(){var el=document.getElementById('qaLoading');if(el)el.remove()}
+
+// ── Markdown Renderer ──
+function mdInline(text){if(!text)return'';text=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');text=text.replace(/`([^`]+)`/g,'<code>$1</code>');text=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');return text}
+
+function md(text){
+    if(!text)return'';text=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    text=text.replace(/```(\w*)\n([\s\S]*?)```/g,function(m,lang,code){code=code.replace(/\n$/,'');if(/[├└│─]/.test(code))return'<pre style="line-height:1.6"><code>'+esc(code).replace(/(├── |└── |│   |│   )/g,'<span style="color:var(--accent);opacity:0.6">$1</span>')+'</code></pre>';return'<pre><code>'+hl(code)+'</code></pre>'});
+    text=text.replace(/`([^`]+)`/g,function(m,code){return'<code>'+hl(code)+'</code>'});
+    text=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    text=text.replace(/^### (.+)$/gm,'<h4 style="color:var(--accent);margin:0.8rem 0 0.3rem;font-size:1rem">$1</h4>');
+    text=text.replace(/^## (.+)$/gm,'<h3 style="color:var(--accent);margin:0.8rem 0 0.3rem">$1</h3>');
+    text=text.replace(/^# (.+)$/gm,'<h3 style="color:var(--accent);margin:0.8rem 0 0.3rem">$1</h3>');
+    text=text.replace(/^[\-\*] (.+)$/gm,'• $1');
+    text=text.replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--border-light);margin:0.8rem 0">');
+    text=text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+    if(CONTENT_CONFIG.pathHighlightRegex)text=text.replace(CONTENT_CONFIG.pathHighlightRegex,'<span class="hl-path">$1</span>');
+    text=text.replace(/\n\n/g,'</p><p style="margin:0.5rem 0">');text=text.replace(/\n/g,'<br>');
+    return'<p style="margin:0.5rem 0">'+text+'</p>';
+}
+
+// ── API Test ──
+function showTestResult(text,isErr){var el=document.getElementById('testResult');el.style.display='block';el.style.borderColor=isErr?'var(--accent3)':'var(--accent)';el.style.color=isErr?'var(--accent3)':'var(--text)';el.textContent=text}
+function testPing(){var url=document.getElementById('cfgUrl').value.trim(),key=document.getElementById('cfgKey').value.trim();if(!url||!key){showTestResult('请先填写 API 地址和 Key',true);return}var proto=detectProtocol(url);showTestResult('⏳ 测试中...\n协议：'+proto.toUpperCase());var headers=getHeaders(key,proto);var opts={method:proto==='anthropic'?'POST':'GET',headers:headers};if(proto==='anthropic')opts.body=JSON.stringify({model:'test',messages:[{role:'user',content:'hi'}],max_tokens:1});var testUrl=proto==='anthropic'?url:url.replace(/\/chat\/completions$/,'').replace(/\/v1\/?$/,'')+'/v1/models';fetch(testUrl,opts).then(function(r){if(r.ok)showTestResult('✅ 连接成功！状态码：'+r.status);else r.text().then(function(t){showTestResult('⚠️ 状态码：'+r.status+'\n'+t.substring(0,500),r.status!==400||proto!=='anthropic')})}).catch(function(e){showTestResult('❌ '+e.message,true)})}
+function testModels(){var url=document.getElementById('cfgUrl').value.trim(),key=document.getElementById('cfgKey').value.trim();if(!url||!key){showTestResult('请先填写',true);return}var proto=detectProtocol(url);if(proto==='anthropic'){showTestResult('ℹ️ Anthropic 无模型列表接口\n常用：claude-sonnet-4-20250514');return}fetch(url.replace(/\/chat\/completions$/,'').replace(/\/v1\/?$/,'')+'/v1/models',{headers:{'Authorization':'Bearer '+key}}).then(function(r){return r.json()}).then(function(d){if(d.data&&d.data.length){var list='✅ '+d.data.length+' 个模型：\n\n';d.data.forEach(function(m,i){list+=(i+1)+'. '+m.id+'\n'});showTestResult(list)}else showTestResult('⚠️ 无模型数据',true)}).catch(function(e){showTestResult('❌ '+e.message,true)})}
+function testSend(){var url=document.getElementById('cfgUrl').value.trim(),key=document.getElementById('cfgKey').value.trim(),model=document.getElementById('cfgModel').value.trim();if(!url||!key||!model){showTestResult('请先填写完整',true);return}var proto=detectProtocol(url),finalUrl=normalizeUrl(url,proto);showTestResult('⏳ 发送中...\n协议：'+proto+'\n模型：'+model);var body=buildRequestBody(proto,model,[{role:'system',content:'一句话回答'},{role:'user',content:'1+1=?'}]);fetch(finalUrl,{method:'POST',headers:getHeaders(key,proto),body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(d){var reply=extractReply(proto,d);if(reply)showTestResult('✅ 成功！\n回复：'+reply+'\n模型：'+(d.model||model));else showTestResult('❌ '+JSON.stringify(d).substring(0,500),true)}).catch(function(e){showTestResult('❌ '+e.message,true)})}
+
+// ── Init ──
+qaInit();renderSidebar();
+var savedProgress=loadProgress();
+if(savedProgress.currentLesson!==undefined&&savedProgress.currentLesson<COURSE.length)currentLesson=savedProgress.currentLesson;
+renderSidebar();renderLesson();
+setTimeout(function(){var c=COURSE[currentLesson];restoreAIQuizzes(c.id);restoreAICodefix(c.id);initCodefixEditors(c.id);if(c.quizzes){for(var i=0;i<c.quizzes.length;i++)restoreQuizState(c.id,i)}if(c.practice)restorePracticeState(c.id)},100);
+</script>
+</body>
+</html>
