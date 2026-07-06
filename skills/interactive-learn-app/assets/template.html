@@ -45,6 +45,16 @@
     .qa-send{padding:0.5rem 1rem;background:var(--accent2);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.88rem;font-weight:500}
     .qa-send:hover{opacity:0.85}
     .qa-send:disabled{opacity:0.5;cursor:not-allowed}
+    .qa-toggle-row{display:flex;gap:0.3rem;padding:0.4rem 1rem;border-bottom:1px solid var(--border-light)}
+    .qa-toggle-btn{font-family:inherit;font-size:0.75rem;padding:0.2rem 0.6rem;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text-muted);cursor:pointer;transition:all 0.15s}
+    .qa-toggle-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+    .qa-toggle-btn.active{background:rgba(139,107,181,0.1);border-color:var(--accent2);color:var(--accent2)}
+    .qa-thinking{background:rgba(155,142,196,0.06);border:1px dashed var(--lavender);border-radius:8px;padding:0.6rem 0.8rem;margin:0.4rem 0;font-size:0.82rem;color:var(--text-muted);line-height:1.6;max-height:200px;overflow-y:auto}
+    .qa-thinking-label{font-size:0.78rem;color:var(--accent2);font-weight:600;cursor:pointer;margin-bottom:0.3rem;user-select:none}
+    .qa-thinking-label::before{content:'▶ ';font-size:0.7rem}
+    .qa-thinking-label.open::before{content:'▼ '}
+    .qa-thinking-body{display:none}
+    .qa-thinking-body.show{display:block}
     .qa-quick{display:flex;flex-wrap:wrap;gap:0.4rem;padding:0.5rem 1rem;border-top:1px solid var(--border-light)}
     .qa-quick-btn{font-family:inherit;font-size:0.78rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:14px;background:var(--bg);color:var(--text-muted);cursor:pointer;transition:all 0.15s}
     .qa-quick-btn:hover{border-color:var(--accent2);color:var(--accent2)}
@@ -213,6 +223,10 @@
                 <button class="qa-header-btn" onclick="qaClear()" title="清空当前会话">清空</button>
             </div>
         </div>
+        <div class="qa-toggle-row">
+            <button class="qa-toggle-btn active" id="qaStreamToggle" onclick="qaToggleStream()">⚡ 流式</button>
+            <button class="qa-toggle-btn" id="qaSearchToggle" onclick="qaToggleSearch()">🔍 联网</button>
+        </div>
         <div class="qa-messages" id="qaMessages"></div>
         <div class="qa-quick" id="qaQuick"></div>
         <div class="qa-input-row">
@@ -317,40 +331,77 @@ codefix:[
 ]},
 
 {id:3,title:'方法（函数）',phase:1,phaseName:'Java 核心基础',
-content:'<h2>📦 什么是方法</h2><p>方法就是一段<strong>有名字的代码块</strong>，可以被反复调用。MC 中的事件处理器就是方法。</p><pre><code class="language-java">// 方法格式：\n// 访问修饰符 返回类型 方法名(参数) { 代码 }\n\npublic void giveHeal(Player player) {\n    // void = 不返回值\n    player.addEffect(new MobEffectInstance(\n        MobEffects.REGENERATION, 100, 0\n    ));\n}\n\n// 有返回值的方法\npublic int getMaxHealth(LivingEntity entity) {\n    return (int) entity.getMaxHealth();\n    // return = 返回结果\n}</code></pre>',
+content:'<h2>📦 什么是方法</h2><p>方法就是一段<strong>有名字的代码块</strong>，可以被反复调用。MC 中的事件处理器就是方法。</p><div class="mc">🎮 MC 类比：就像村民的交易方法——你给它绿宝石，它给你物品。方法也是：给它参数，它执行任务并可能返回结果。</div><pre><code class="language-java">// 方法格式：\n// 访问修饰符 返回类型 方法名(参数) { 代码 }\n\npublic void giveHeal(Player player) {\n    // void = 不返回值\n    player.addEffect(new MobEffectInstance(\n        MobEffects.REGENERATION, 100, 0\n    ));\n}\n\n// 有返回值的方法\npublic int getMaxHealth(LivingEntity entity) {\n    return (int) entity.getMaxHealth();\n    // return = 返回结果\n}</code></pre>'+
+'<h2>🔧 方法的四要素</h2><p>每个方法都由<strong>四部分</strong>组成，缺一不可：</p>'+
+'<table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">要素</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">说明</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">示例</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">访问修饰符</td><td style="padding:0.5rem;border:1px solid var(--border)">控制谁能调用（public/private/protected/无）</td><td style="padding:0.5rem;border:1px solid var(--border)">public</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">返回类型</td><td style="padding:0.5rem;border:1px solid var(--border)">方法返回什么（void 表示不返回）</td><td style="padding:0.5rem;border:1px solid var(--border)">void / int / String</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">方法名</td><td style="padding:0.5rem;border:1px solid var(--border)">小驼峰命名，动词开头</td><td style="padding:0.5rem;border:1px solid var(--border)">giveHeal / getMaxHealth</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">参数列表</td><td style="padding:0.5rem;border:1px solid var(--border)">传入的数据（类型+名称，逗号分隔）</td><td style="padding:0.5rem;border:1px solid var(--border)">(Player player, int amount)</td></tr></tbody></table>'+
+'<pre><code class="language-java">// 完整示例：四要素全部展示\n// ┌─ 1. public（访问修饰符）\n// │  ┌─ 2. int（返回类型）\n// │  │        ┌─ 3. calculateDamage（方法名）\n// │  │        │                ┌─ 4. 参数列表\npublic int calculateDamage(int baseDamage, float multiplier) {\n    // 计算并返回伤害值\n    return (int) (baseDamage * multiplier);  // return = 返回结果\n}\n\n// 无返回值、无参数\npublic void playSound() {\n    // void = 不返回任何值\n    world.playSound(null, pos, SoundEvents.BELL_BLOCK,\n        SoundSource.PLAYERS, 1.0f, 1.0f);\n}</code></pre>'+
+'<h2>⚡ 方法重载</h2><p><strong>方法重载</strong>：同一个类中可以有<strong>多个同名方法</strong>，只要参数列表不同（类型、数量、顺序）。</p><div class="mc">🎮 MC 类比：就像攻击——你可以 attack(int) 用数字表示伤害，也可以 attack(Entity) 直接攻击实体。方法名相同，但参数不同。</div><pre><code class="language-java">// 方法重载示例：同名不同参数\nclass Weapon {\n    // 重载版本 1：用 int 值伤害\n    public void attack(int damage) {\n        System.out.println("造成 " + damage + " 点伤害");\n    }\n\n    // 重载版本 2：攻击实体\n    public void attack(LivingEntity target) {\n        target.hurt(target.damageSources().generic(), 5.0f);\n    }\n\n    // 重载版本 3：带伤害类型\n    public void attack(LivingEntity target, DamageSource source) {\n        target.hurt(source, 10.0f);\n    }\n}\n\n// 调用时，编译器根据参数自动选择版本\nWeapon w = new Weapon();\nw.attack(10);                    // 调用版本 1\nw.attack(怪物);                   // 调用版本 2\nw.attack(怪物, DamageSource.GENERIC); // 调用版本 3</code></pre>'+
+'<h2>📌 static 方法</h2><p><strong>static 方法</strong>属于<strong>类本身</strong>，而不是某个对象。通过 <code>类名.方法名()</code> 直接调用。</p><div class="mc">🎮 MC 类比：MathHelper.clamp() 就是 static 方法——你不需要创建 MathHelper 对象，直接用 MathHelper.clamp(value, min, max) 调用。</div><pre><code class="language-java">// static 方法定义\nclass MathHelper {\n    // static = 属于类，不属于对象\n    public static int clamp(int value, int min, int max) {\n        if (value < min) return min;\n        if (value > max) return max;\n        return value;\n    }\n\n    // 非 static 方法（需要对象调用）\n    public int add(int a, int b) {\n        return a + b;\n    }\n}\n\n// 调用 static 方法：类名.方法名()\nint result = MathHelper.clamp(100, 0, 20);  // → 20\n\n// 调用非 static 方法：需要创建对象\nMathHelper helper = new MathHelper();\nint sum = helper.add(1, 2);  // → 3\n\n// MC 中的 static 方法示例\nint clamped = Mth.clamp(health, 0, maxHealth);  // Mth 是类名</code></pre>',
 quizzes:[
 {q:'方法声明中 void 表示什么？',opts:['返回整数','返回字符串','不返回任何值','出错'],a:2},
 {q:'return 关键字的作用是？',opts:['结束程序','返回方法的结果','声明变量','循环'],a:1},
 {q:'`@SubscribeEvent` 标记的是什么？',opts:['类','方法','变量','常量'],a:1},
 {q:'方法的好处是什么？',opts:['让代码更长','代码复用','增加变量','删除代码'],a:1},
 {q:'`public void giveHeal(Player p)` 中 Player p 是什么？',opts:['方法名','返回类型','参数','变量'],a:2},
-{q:'有返回值的方法必须用什么关键字？',opts:['void','return','public','static'],a:1}
+{q:'有返回值的方法必须用什么关键字？',opts:['void','return','public','static'],a:1},
+{q:'以下哪个是方法重载？',opts:['同名同参数','同名不同参数','不同名同参数','不同名不同参数'],a:1},
+{q:'static 方法如何调用？',opts:['创建对象后调用','类名.方法名()','用 this 关键字','用 super 关键字'],a:1}
 ],
 practice:[
-{prompt:'声明一个方法 healPlayer，接收一个 Player 参数 player，不返回值，内部调用 giveHeal(player)',hint:'格式：public void 方法名(参数) { 调用; }',answer:'public void healPlayer(Player player) {\n    giveHeal(player);\n}',review:'// public = 公开\n// void = 不返回值\n// healPlayer = 方法名\npublic void healPlayer(Player player) {\n    giveHeal(player);\n}'}
+{prompt:'声明一个方法 healPlayer，接收一个 Player 参数 player，不返回值，内部调用 giveHeal(player)',hint:'格式：public void 方法名(参数) { 调用; }',answer:'public void healPlayer(Player player) {\n    giveHeal(player);\n}',review:'// public = 公开\n// void = 不返回值\n// healPlayer = 方法名\npublic void healPlayer(Player player) {\n    giveHeal(player);\n}'},
+{prompt:'写一个 static 方法 getMaxLevel，返回 int 值 100，不需要参数',hint:'格式：public static 返回类型 方法名() { return 值; }',answer:'public static int getMaxLevel() {\n    return 100;\n}',review:'// static = 属于类\n// int = 返回整数\n// getMaxLevel = 方法名\npublic static int getMaxLevel() {\n    return 100;\n}'}
 ]},
 
 {id:4,title:'类与对象',phase:1,phaseName:'Java 核心基础',
-content:'<h2>🏗️ 什么是类</h2><p>类（Class）是对象的<strong>模板/蓝图</strong>。MC 中 Block、Item、Entity 都是类。</p><pre><code class="language-java">// 定义一个类\nclass MagicSword {\n    // 字段（属性）\n    private int damage;\n    private String name;\n\n    // 构造方法（创建对象时调用）\n    public MagicSword(int damage, String name) {\n        this.damage = damage;  // this = 当前对象\n        this.name = name;\n    }\n\n    // 方法（行为）\n    public void attack(LivingEntity target) {\n        target.hurt(target.damageSources().generic(), this.damage);\n    }\n}\n\n// 创建对象（实例化）\nMagicSword sword = new MagicSword(10, "灭世之剑");\nsword.attack(怪物);  // 调用方法</code></pre>',
+content:'<h2>🏗️ 什么是类</h2><p>类（Class）是对象的<strong>模板/蓝图</strong>。MC 中 Block、Item、Entity 都是类。</p><div class="mc">🎮 MC 类比：类就像物品的"配方"，对象就是用配方做出来的"实物"。Item 类定义了所有物品的规则，而你的钻石剑就是一个具体的对象。</div><pre><code class="language-java">// 定义一个类\nclass MagicSword {\n    // 字段（属性）\n    private int damage;\n    private String name;\n\n    // 构造方法（创建对象时调用）\n    public MagicSword(int damage, String name) {\n        this.damage = damage;  // this = 当前对象\n        this.name = name;\n    }\n\n    // 方法（行为）\n    public void attack(LivingEntity target) {\n        target.hurt(target.damageSources().generic(), this.damage);\n    }\n}\n\n// 创建对象（实例化）\nMagicSword sword = new MagicSword(10, "灭世之剑");\nsword.attack(怪物);  // 调用方法</code></pre>'+
+'<h2>🔒 封装 — getter/setter</h2><p><strong>封装</strong>是把字段设为 <code>private</code>，通过 <code>public</code> 的 getter/setter 方法来访问和修改。</p><div class="mc">🎮 MC 类比：ItemStack.getCount() 和 setCount() 就是封装！count 字段是 private，外部不能直接访问，必须通过 getter/setter，这样可以在方法里加验证逻辑。</div><pre><code class="language-java">// 封装示例\nclass ItemStack {\n    private int count;  // private = 外部不能直接访问\n\n    // getter：读取值\n    public int getCount() {\n        return count;  // 返回私有字段\n    }\n\n    // setter：修改值（可以加验证）\n    public void setCount(int count) {\n        if (count < 0) {\n            count = 0;  // 防止负数\n        }\n        if (count > 64) {\n            count = 64;  // 防止超过最大堆叠\n        }\n        this.count = count;  // this.count = 字段，count = 参数\n    }\n}\n\n// 使用\nItemStack stack = new ItemStack();\nstack.setCount(10);          // 设置数量\nint current = stack.getCount(); // 获取数量 → 10</code></pre>'+
+'<h2>🏗️ 构造方法详解</h2><p><strong>构造方法</strong>在创建对象时自动调用，用于初始化字段。可以有多个构造方法（重载）。</p><pre><code class="language-java">// 构造方法详解\nclass MagicSword {\n    private int damage;\n    private String name;\n    private boolean enchanted;\n\n    // 无参构造：使用默认值\n    public MagicSword() {\n        this.damage = 5;           // 默认伤害\n        this.name = "普通剑";       // 默认名字\n        this.enchanted = false;    // 默认未附魔\n    }\n\n    // 有参构造：自定义值\n    public MagicSword(int damage, String name) {\n        this.damage = damage;      // this.damage = 字段\n        this.name = name;          // name = 参数\n        this.enchanted = false;\n    }\n\n    // 完整参数构造\n    public MagicSword(int damage, String name, boolean enchanted) {\n        this.damage = damage;\n        this.name = name;\n        this.enchanted = enchanted;\n    }\n}\n\n// 创建对象（自动调用构造方法）\nMagicSword sword1 = new MagicSword();                      // 无参\nMagicSword sword2 = new MagicSword(10, "烈焰剑");           // 两参\nMagicSword sword3 = new MagicSword(20, "灭世剑", true);     // 三参</code></pre>'+
+'<h2>🎯 对象的使用</h2><p>创建对象后，就可以调用它的方法、访问 getter。</p><pre><code class="language-java">// 创建对象\nMagicSword sword = new MagicSword(10, "烈焰剑");\n\n// 调用方法\nLivingEntity target = ...;  // 假设有一个怪物\nsword.attack(target);        // 调用 attack 方法\n\n// 通过 getter 获取值\nint dmg = sword.getDamage(); // 获取伤害\nString name = sword.getName(); // 获取名字\n\n// 对象数组\nMagicSword[] swords = new MagicSword[3];\nswords[0] = new MagicSword(5, "铁剑");\nswords[1] = new MagicSword(10, "钻石剑");\nswords[2] = new MagicSword(15, "下界合金剑");\n\n// 遍历对象数组\nfor (MagicSword s : swords) {\n    if (s != null) {  // null 检查很重要！\n        System.out.println(s.getName());\n    }\n}\n\n// null 检查\nMagicSword maybeNull = null;\nif (maybeNull != null) {\n    maybeNull.attack(target);  // 安全\n}\n// maybeNull.attack(target);  // 如果不检查，会抛出 NullPointerException！</code></pre>',
 quizzes:[
 {q:'new 关键字的作用是？',opts:['声明变量','创建对象','定义类','删除对象'],a:1},
 {q:'this 关键字指的是？',opts:['父类','当前类','当前对象','全局变量'],a:2},
 {q:'构造方法的作用是？',opts:['删除对象','创建并初始化对象','声明变量','循环'],a:1},
 {q:'`class MagicSword` 中 class 的作用是？',opts:['创建对象','定义类','声明变量','导入包'],a:1},
 {q:'`private int damage` 中 private 的作用是？',opts:['公开','私有，只有当前类能访问','静态','常量'],a:1},
-{q:'类和对象的关系是？',opts:['没区别','类是模板，对象是实例','对象是模板，类是实例','类包含对象'],a:1}
+{q:'类和对象的关系是？',opts:['没区别','类是模板，对象是实例','对象是模板，类是实例','类包含对象'],a:1},
+{q:'getter/setter 的作用是？',opts:['删除字段','封装字段的读写访问','创建对象','循环遍历'],a:1},
+{q:'一个类可以有几个构造方法？',opts:['只能1个','只能2个','可以有多个','不能有构造方法'],a:2}
+],
+practice:[
+{prompt:'给 MagicSword 类添加 getter 方法 getDamage()，返回 damage 字段的值',hint:'格式：public 返回类型 get字段名() { return 字段; }',answer:'public int getDamage() {\n    return damage;\n}',review:'// public = 公开\n// int = 返回整数\n// getDamage = getter 方法名\npublic int getDamage() {\n    return damage;\n}'},
+{prompt:'给 MagicSword 类添加 setter 方法 setDamage(int damage)，将参数赋值给 this.damage',hint:'格式：public void set字段名(参数) { this.字段 = 参数; }',answer:'public void setDamage(int damage) {\n    this.damage = damage;\n}',review:'// public = 公开\n// void = 不返回值\n// setDamage = setter 方法名\npublic void setDamage(int damage) {\n    this.damage = damage;\n}'}
 ]},
 
 {id:5,title:'继承与接口',phase:1,phaseName:'Java 核心基础',
-content:'<h2>🧬 继承（extends）</h2><p>子类继承父类的属性和方法。MC 中所有方块继承 Block，所有物品继承 Item。</p><pre><code class="language-java">// 自定义武器继承 SwordItem\nclass FireSword extends SwordItem {\n    @Override\n    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {\n        target.setSecondsOnFire(5);  // 攻击时点燃目标\n        return super.hurtEnemy(stack, target, attacker);\n    }\n}</code></pre>'+
-'<h2>🔌 接口（implements）</h2><pre><code class="language-java">// 实现 ICurioItem 接口（Curios 模组）\nclass MagicRing implements ICurioItem {\n    @Override\n    public void curioTick(SlotContext context) {\n        // 每 tick 执行——给佩戴者效果\n    }\n\n    @Override\n    public boolean canEquip(SlotContext context) {\n        return true;  // 可以装备\n    }\n}</code></pre>',
+content:'<h2>🧬 继承详解</h2><p>继承让子类<strong>复用</strong>父类的属性和方法，用 <code>extends</code> 关键字。MC 中所有方块继承 Block，所有物品继承 Item。</p>'+
+'<h3>super 关键字</h3><p><code>super</code> 用来调用父类的构造方法或方法。子类构造方法必须先调用 <code>super()</code>。</p><pre><code class="language-java">// 子类构造方法必须调用 super()（在第一行）\nclass FireSword extends SwordItem {\n    public FireSword() {\n        // super() 调用父类构造方法\n        // SwordItem 需要 Tier、攻击力、攻速、Properties\n        super(ItemTier.NETHERITE, 7, -2.4f,\n            new Item.Properties().fireResistant());\n    }\n}\n\n// 调用父类的方法（不是构造方法）\nclass FireSword extends SwordItem {\n    @Override\n    public boolean hurtEnemy(ItemStack stack, LivingEntity target,\n                             LivingEntity attacker) {\n        target.setSecondsOnFire(5);    // 自己的逻辑：点燃\n        return super.hurtEnemy(stack, target, attacker);\n        // super.hurtEnemy() = 调用父类原版的伤害逻辑\n    }\n}</code></pre>'+
+'<h3>@Override 注解</h3><p>重写父类方法时<strong>必须加</strong> <code>@Override</code>。它让编译器帮你检查：如果方法签名写错，编译会报错，避免"以为重写了但其实没重写"的 bug。</p><pre><code class="language-java">// 正确：加了 @Override，编译器会检查\n@Override\npublic boolean hurtEnemy(ItemStack stack, ...) {\n    // 正确覆盖父类方法\n}\n\n// 错误示例：拼写错误但没加 @Override\npublic boolean hurtEnmy(ItemStack stack, ...) {\n    // 编译不报错，但这是新方法，不是重写！\n    // 原版方法照样执行，你的代码永远不会被调用\n}</code></pre>'+
+'<h3>单继承限制</h3><p>Java 只支持<strong>单继承</strong>——一个类只能继承一个父类。但可以实现多个接口来弥补。</p>'+
+'<h2>🔌 接口详解</h2><p>接口（Interface）是一份<strong>契约/协议</strong>：只要实现这个接口，就必须提供接口定义的所有方法。接口用 <code>implements</code>。</p><pre><code class="language-java">// 定义接口——规定"能做什么"\npublic interface IMagical {\n    void castSpell();           // 必须实现\n    int getManaCost();          // 必须实现\n}\n\npublic interface IEnchantable {\n    void enchant(String name);  // 必须实现\n}\n\n// 一个类可以实现多个接口！\nclass MagicRing implements ICurioItem, IMagical, IEnchantable {\n    // 必须实现 ICurioItem 的方法\n    @Override\n    public void curioTick(SlotContext ctx) { /* 给佩戴者效果 */ }\n\n    @Override\n    public boolean canEquip(SlotContext ctx) { return true; }\n\n    // 必须实现 IMagical 的方法\n    @Override\n    public void castSpell() { /* 释放魔法 */ }\n\n    @Override\n    public int getManaCost() { return 10; }\n\n    // 必须实现 IEnchantable 的方法\n    @Override\n    public void enchant(String name) { /* 附魔 */ }\n}</code></pre>'+
+'<h3>default 方法（Java 8+）</h3><p>接口可以用 <code>default</code> 提供默认实现，实现类可以选择性覆盖。</p><pre><code class="language-java">// 接口中有 default 方法\npublic interface IMagical {\n    void castSpell();                  // 必须实现\n\n    default boolean hasEnoughMana(int current) {\n        return current >= getManaCost(); // 默认逻辑\n    }\n\n    default int getManaCost() {\n        return 5;                      // 默认消耗 5\n    }\n}\n\n// 实现类可以选择覆盖 default 方法\nclass MagicWand implements IMagical {\n    @Override\n    public void castSpell() { /* 必须实现 */ }\n\n    @Override\n    public int getManaCost() {\n        return 20;  // 覆盖默认值\n    }\n    // hasEnoughMana 用接口中的默认实现，不用写\n}</code></pre>'+
+'<h2>⚖️ 继承 vs 接口</h2><table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">特性</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">继承 extends</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">接口 implements</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">数量</td><td style="padding:0.5rem;border:1px solid var(--border)">单继承（只能一个）</td><td style="padding:0.5rem;border:1px solid var(--border)">多实现（可以多个）</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">构造方法</td><td style="padding:0.5rem;border:1px solid var(--border)">有（父类的构造方法被继承）</td><td style="padding:0.5rem;border:1px solid var(--border)">无（接口没有构造方法）</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">用途</td><td style="padding:0.5rem;border:1px solid var(--border)">is-a 关系（是一种）</td><td style="padding:0.5rem;border:1px solid var(--border)">can-do 能力（能做什么）</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">字段</td><td style="padding:0.5rem;border:1px solid var(--border)">可以有实例字段</td><td style="padding:0.5rem;border:1px solid var(--border)">只能有 static final 常量</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">MC 例子</td><td style="padding:0.5rem;border:1px solid var(--border)">FireSword <strong>is-a</strong> SwordItem</td><td style="padding:0.5rem;border:1px solid var(--border)">MagicRing <strong>can-do</strong> ICurioItem</td></tr></tbody></table>',
 quizzes:[
 {q:'extends 关键字用于？',opts:['实现接口','继承父类','创建对象','声明常量'],a:1},
 {q:'@Override 注解的作用是？',opts:['删除方法','重写父类方法','创建新类','声明变量'],a:1},
 {q:'implements 关键字用于？',opts:['继承父类','实现接口','创建对象','声明常量'],a:1},
 {q:'MC 中 SwordItem 继承自哪个类？',opts:['Block','Item','Entity','Player'],a:1},
 {q:'子类可以重写父类的方法吗？',opts:['不可以','可以，用 @Override','只能重写 static 方法','只能重写 private 方法'],a:1},
-{q:'接口和类的区别是？',opts:['没区别','接口不能有方法','接口只有方法签名没有实现','类不能继承'],a:2}
+{q:'接口和类的区别是？',opts:['没区别','接口不能有方法','接口只有方法签名没有实现','类不能继承'],a:2},
+{q:'super() 调用必须放在构造方法的哪里？',opts:['任意位置','最后一行','第一行','不需要调用'],a:2},
+{q:'一个类可以实现几个接口？',opts:['只能 1 个','最多 2 个','没有限制','不能实现接口'],a:2}
+],
+practice:[
+{prompt:'写一个子类 IceSword 继承 SwordItem，构造方法中调用 super()，参数用 ItemTier.IRON, 5, -2.0f, new Item.Properties()',hint:'class 子类 extends 父类 { public 子类() { super(参数); } }',answer:'class IceSword extends SwordItem {\n    public IceSword() {\n        super(ItemTier.IRON, 5, -2.0f, new Item.Properties());\n    }\n}',review:'// extends = 继承 SwordItem\n// super() = 调用父类构造方法\n// ItemTier.IRON = 铁质\n// 5 = 攻击力加成\n// -2.0f = 攻击速度\nclass IceSword extends SwordItem {\n    public IceSword() {\n        super(ItemTier.IRON, 5, -2.0f, new Item.Properties());\n    }\n}'},
+{prompt:'写一个类 MagicStaff 实现 IMagical 接口，必须实现 castSpell() 和 getManaCost() 方法，castSpell() 打印 "施法！", getManaCost() 返回 15',hint:'class 类名 implements 接口 { @Override public 返回类型 方法名() { ... } }',answer:'class MagicStaff implements IMagical {\n    @Override\n    public void castSpell() {\n        System.out.println("施法！");\n    }\n\n    @Override\n    public int getManaCost() {\n        return 15;\n    }\n}',review:'// implements = 实现 IMagical 接口\n// @Override = 标记重写接口方法\n// castSpell() = 施法方法\n// getManaCost() = 返回 mana 消耗\nclass MagicStaff implements IMagical {\n    @Override\n    public void castSpell() {\n        System.out.println("施法！");\n    }\n\n    @Override\n    public int getManaCost() {\n        return 15;\n    }\n}'}
 ]},
 
 {id:6,title:'数组与集合',phase:1,phaseName:'Java 核心基础',
@@ -423,48 +474,279 @@ quizzes:[
 ]},
 
 {id:12,title:'Forge 模组结构',phase:3,phaseName:'Forge 核心',
-content:'<h2>📁 模组目录结构</h2><pre><code>src/main/java/com/example/mymod/\n├── MyMod.java              // 主类（@Mod 注解）\n├── init/\n│   ├── ModItems.java       // 物品注册\n│   ├── ModBlocks.java      // 方块注册\n│   └── ModEntities.java    // 实体注册\n├── items/\n│   └── FireSwordItem.java  // 自定义物品\n└── events/\n    └── ModEvents.java      // 事件监听\n\nsrc/main/resources/\n├── META-INF/mods.toml      // 模组信息\n└── assets/mymod/\n    ├── lang/zh_cn.json     // 中文翻译\n    └── textures/item/       // 物品贴图</code></pre>'+
-'<h2>🔑 主类</h2><pre><code class="language-java">@Mod("mymod")\npublic class MyMod {\n    public static final String MOD_ID = "mymod";\n    public MyMod() {\n        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();\n        ModItems.ITEMS.register(bus);\n        ModBlocks.BLOCKS.register(bus);\n        MinecraftForge.EVENT_BUS.register(this);\n    }\n}</code></pre>',
+content:'<h2>📁 模组目录结构</h2><p>每个 Forge 模组都有固定的目录结构，就像 Minecraft 的存档有固定文件夹一样。理解这个结构是模组开发的第一步。</p>'+
+'<div class="mc"><h3>🎮 类比</h3><p>模组目录就像一个<strong>工作台</strong>：<code>src/main/java/</code> 是你放材料（代码）的地方，<code>src/main/resources/</code> 是你放装饰（贴图、翻译）的地方，<code>mods.toml</code> 是工作台的说明书——告诉 Forge「这是什么模组」。</div>'+
+'<pre><code>my-mod/                          // 项目根目录\n├── src/main/java/com/example/mymod/   // ← Java 源代码目录\n│   ├── MyMod.java              // 主类（@Mod 注解，模组入口）\n│   ├── init/                   // ← 注册类目录\n│   │   ├── ModItems.java       // 物品注册（DeferredRegister）\n│   │   ├── ModBlocks.java      // 方块注册\n│   │   └── ModEntities.java    // 实体注册\n│   ├── items/                  // ← 自定义物品逻辑\n│   │   └── FireSwordItem.java  // 自定义物品类\n│   └── events/                 // ← 事件监听\n│       └── ModEvents.java      // 事件处理类\n│\n├── src/main/resources/         // ← 资源文件目录\n│   ├── META-INF/mods.toml      // 模组配置（必须！）\n│   └── assets/mymod/           // 客户端资源\n│       ├── lang/zh_cn.json     // 中文翻译\n│       ├── textures/           // 贴图\n│       └── models/             // 模型\n│\n└── build.gradle                // 构建配置</code></pre>'+
+'<h3>各目录详解</h3>'+
+'<table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">目录</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">用途</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">说明</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>src/main/java/</code></td><td style="padding:0.5rem;border:1px solid var(--border)">Java 源代码</td><td style="padding:0.5rem;border:1px solid var(--border)">所有 .java 文件放这里，包括主类、物品、事件等</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>src/main/resources/</code></td><td style="padding:0.5rem;border:1px solid var(--border)">资源文件</td><td style="padding:0.5rem;border:1px solid var(--border)">mods.toml、贴图、翻译、模型等非代码资源</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>META-INF/mods.toml</code></td><td style="padding:0.5rem;border:1px solid var(--border)">模组配置</td><td style="padding:0.5rem;border:1px solid var(--border)">告诉 Forge 模组 ID、版本、依赖等信息（必须！）</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>assets/mymod/</code></td><td style="padding:0.5rem;border:1px solid var(--border)">客户端资源</td><td style="padding:0.5rem;border:1px solid var(--border)">贴图、语言文件、模型等客户端渲染资源</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>data/mymod/</code></td><td style="padding:0.5rem;border:1px solid var(--border)">数据包</td><td style="padding:0.5rem;border:1px solid var(--border)">配方、战利品表、标签等服务端数据</td></tr></tbody></table>'+
+
+'<h2>📄 mods.toml 配置详解</h2><p><code>mods.toml</code> 是模组的「身份证」，Forge 启动时第一个读取的就是它。没有它，Forge 不认识你的模组。</p>'+
+'<div class="mc"><h3>🎮 类比</h3><p><code>mods.toml</code> 就像模组的<strong>身份证 + 简历</strong>：告诉 Forge「我叫什么、我是谁做的、我需要什么条件才能运行」。如果这张身份证有问题，Forge 会直接拒绝加载你的模组。</div>'+
+'<pre><code># mods.toml 完整示例（带中文注释）\n\n# 模组加载器类型：必须是 "javafml"\nmodLoader = "javafml"\n\n# 加载器版本：匹配你的 Forge 版本\nloaderVersion = "[47,)"\n\n# 许可证：推荐 MIT 或 All Rights Reserved\nlicense = "MIT"\n\n# 模组信息块（可以有多个 [[mods]]）\n[[mods]]\n# 模组 ID：全局唯一，小写字母+下划线\nmodId = "mymod"\n\n# 版本号：推荐语义化版本\nversion = "1.0.0"\n\n# 显示名称：在模组列表中显示\ndisplayName = "我的第一个模组"\n\n# 描述：模组列表中鼠标悬停时显示\ndescription = """\n这是一个 Forge 模组示例\n"""\n\n# 依赖声明块\n[[dependencies.mymod]]\n# 依赖的模组 ID\nmodId = "forge"\n# 是否必须：true = 没有就崩溃\nmandatory = true\n# 版本范围\nversionRange = "[47,)"\n# 依赖顺序：AFTER = 在它之后加载\nordering = "NONE"\n# 侧边：BOTH = 客户端和服务端都需要\nside = "BOTH"\n\n[[dependencies.mymod]]\nmodId = "minecraft"\nmandatory = true\nversionRange = "[1.20.1]"\nordering = "NONE"\nside = "BOTH"</code></pre>'+
+'<h3>关键字段说明</h3>'+
+'<table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">字段</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">说明</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">示例</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>modLoader</code></td><td style="padding:0.5rem;border:1px solid var(--border)">加载器类型</td><td style="padding:0.5rem;border:1px solid var(--border)">"javafml"</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>loaderVersion</code></td><td style="padding:0.5rem;border:1px solid var(--border)">Forge 版本范围</td><td style="padding:0.5rem;border:1px solid var(--border)">"[47,)"</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>license</code></td><td style="padding:0.5rem;border:1px solid var(--border)">许可证</td><td style="padding:0.5rem;border:1px solid var(--border)">"MIT"</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>modId</code></td><td style="padding:0.5rem;border:1px solid var(--border)">模组唯一标识</td><td style="padding:0.5rem;border:1px solid var(--border)">"mymod"</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>version</code></td><td style="padding:0.5rem;border:1px solid var(--border)">版本号</td><td style="padding:0.5rem;border:1px solid var(--border)">"1.0.0"</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>displayName</code></td><td style="padding:0.5rem;border:1px solid var(--border)">显示名称</td><td style="padding:0.5rem;border:1px solid var(--border)">"我的模组"</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>mandatory</code></td><td style="padding:0.5rem;border:1px solid var(--border)">依赖是否必须</td><td style="padding:0.5rem;border:1px solid var(--border)">true / false</td></tr></tbody></table>'+
+
+'<h2>🏷️ @Mod 主类详解</h2><p><code>@Mod</code> 注解是 Forge 识别模组主类的标志。每个模组必须有且只有一个带 <code>@Mod</code> 注解的类。</p>'+
+'<div class="mc"><h3>🎮 类比</h3><p><code>@Mod</code> 注解就像模组的<strong>门牌号</strong>：Forge 扫描所有类，看到这个注解就知道「哦，这是模组的入口」。没有门牌号，Forge 找不到你的模组。</div>'+
+'<pre><code class="language-java">// @Mod 注解：标记这是模组主类\n// 参数 "mymod" 必须和 mods.toml 中的 modId 一致！\n@Mod("mymod")\npublic class MyMod {\n\n    // MOD_ID 常量：全局统一使用，避免手写字符串出错\n    public static final String MOD_ID = "mymod";\n\n    // 构造方法：Forge 加载模组时自动调用\n    public MyMod() {\n        // 获取 Mod 事件总线（模组生命周期事件）\n        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();\n\n        // 注册物品/方块/实体到 Mod 总线\n        ModItems.ITEMS.register(modBus);\n        ModBlocks.BLOCKS.register(modBus);\n\n        // 注册游戏事件到 Forge 主总线\n        MinecraftForge.EVENT_BUS.register(this);\n    }\n}</code></pre>'+
+'<h3>@Mod 注解参数</h3><p><code>@Mod</code> 只需要一个参数：<strong>modId</strong>（模组 ID）。它必须：</p><ul><li>与 <code>mods.toml</code> 中的 <code>modId</code> <strong>完全一致</strong></li><li>只能包含<strong>小写字母、数字、下划线</strong></li><li><strong>全局唯一</strong>——不能和其他模组重名</li></ul>'+
+'<h3>MOD_ID 常量的作用</h3><p>把 modId 定义为 <code>public static final</code> 常量的好处：</p><ul><li>避免到处手写字符串 <code>"mymod"</code>，减少拼写错误</li><li>修改 modId 时只需改一处</li><li>其他类可以通过 <code>MyMod.MOD_ID</code> 引用</li></ul>'+
+'<h3>IEventBus 的两种获取方式</h3>'+
+'<table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">方式</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">代码</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">用途</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">Mod 事件总线</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>FMLJavaModLoadingContext.get().getModEventBus()</code></td><td style="padding:0.5rem;border:1px solid var(--border)">注册物品/方块/实体（模组生命周期）</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)">Forge 主总线</td><td style="padding:0.5rem;border:1px solid var(--border)"><code>MinecraftForge.EVENT_BUS</code></td><td style="padding:0.5rem;border:1px solid var(--border)">监听游戏事件（受伤、破坏方块等）</td></tr></tbody></table>'+
+
+'<h2>🎨 资源文件结构</h2><p>资源文件让模组拥有贴图、翻译、模型和配方。它们放在 <code>src/main/resources/</code> 下，分为 <code>assets</code>（客户端）和 <code>data</code>（服务端）两大类。</p>'+
+'<div class="mc"><h3>🎮 类比</h3><p><code>assets</code> = <strong>客户端资源</strong>：贴图、翻译、模型——玩家看到的东西。<br><code>data</code> = <strong>服务端数据</strong>：配方、战利品表——游戏逻辑需要的东西。<br>就像一个餐厅：<code>assets</code> 是装修和菜单（顾客看到），<code>data</code> 是厨房的配方（后台运作）。</div>'+
+'<pre><code>src/main/resources/\n├── META-INF/\n│   └── mods.toml                    // 模组配置\n│\n├── assets/mymod/                    // 客户端资源\n│   ├── lang/\n│   │   └── zh_cn.json               // 中文翻译文件\n│   ├── textures/\n│   │   ├── item/                    // 物品贴图\n│   │   │   └── fire_sword.png       // 火焰剑贴图（16x16）\n│   │   └── block/                   // 方块贴图\n│   │       └── ruby_block.png       // 红宝石方块贴图\n│   └── models/\n│       ├── item/                    // 物品模型\n│       │   └── fire_sword.json      // 火焰剑模型\n│       └── block/                   // 方块模型\n│           └── ruby_block.json      // 红宝石方块模型\n│\n└── data/mymod/                      // 服务端数据\n    ├── recipes/                     // 配方\n    │   └── fire_sword.json          // 火焰剑合成配方\n    └── loot_tables/                 // 战利品表\n        └── blocks/                  // 方块掉落\n            └── ruby_block.json      // 红宝石方块掉落</code></pre>'+
+'<h3>语言文件示例</h3><pre><code class="language-json">// assets/mymod/lang/zh_cn.json\n// 格式：注册名 → 中文翻译\n{\n  "item.mymod.fire_sword": "火焰剑",\n  "block.mymod.ruby_block": "红宝石方块",\n  "itemGroup.mymod": "我的模组"\n}</code></pre>'+
+
+'<h2>💪 动手练习</h2>'+
+'<div class="pe" id="practice12"></div>',
+
+practice:[
+{prompt:'创建 mods.toml 文件，modId 设为 "coolmod"，版本设为 "1.0.0"',hint:'modLoader = "javafml"，[[mods]] 块中设置 modId 和 version',answer:'modLoader = "javafml"\nloaderVersion = "[47,)"\n\n[[mods]]\nmodId = "coolmod"\nversion = "1.0.0"\ndisplayName = "Cool Mod"',review:'// mods.toml 是模组的配置文件\n// modLoader = "javafml" = Java 模组加载器\n// [[mods]] = 模组信息块\nmodLoader = "javafml"\nloaderVersion = "[47,)"\n\n[[mods]]\nmodId = "coolmod"\nversion = "1.0.0"\ndisplayName = "Cool Mod"'},
+{prompt:'写一个模组主类，modId 为 "coolmod"，构造方法中获取 Mod 事件总线',hint:'@Mod("coolmod")，MOD_ID 常量，FMLJavaModLoadingContext.get().getModEventBus()',answer:'@Mod("coolmod")\npublic class CoolMod {\n    public static final String MOD_ID = "coolmod";\n    public CoolMod() {\n        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();\n    }\n}',review:'// @Mod 注解标记模组主类\n// MOD_ID 常量避免手写字符串\n// 构造方法中获取 Mod 事件总线\n@Mod("coolmod")\npublic class CoolMod {\n    public static final String MOD_ID = "coolmod";\n    public CoolMod() {\n        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();\n    }\n}'}
+],
 quizzes:[
 {q:'@Mod("mymod") 中的 "mymod" 是什么？',opts:['类名','模组 ID','包名','版本号'],a:1},
-{q:'模组物品注册放在哪个目录？',opts:['items/','init/','events/','assets/'],a:1},
-{q:'mods.toml 文件的作用是？',opts:['注册物品','定义模组信息','监听事件','渲染模型'],a:1},
-{q:'模组主类的构造方法中通常做什么？',opts:['画贴图','注册物品/方块/事件','写配置文件','删除文件'],a:1},
-{q:'IEventBus 的作用是？',opts:['渲染模型','事件总线，用于注册','网络通信','数据存储'],a:1},
-{q:'assets/mymod/lang/ 目录放什么？',opts:['代码','贴图','语言翻译文件','配置'],a:2}
+{q:'mods.toml 文件放在哪个目录下？',opts:['src/main/java/','src/main/resources/META-INF/','assets/mymod/','data/mymod/'],a:1},
+{q:'modLoader 字段应该设为什么？',opts:['"javafml"','"forge"','"minecraft"','"mod"'],a:0},
+{q:'获取 Mod 事件总线的代码是？',opts:['MinecraftForge.EVENT_BUS','FMLJavaModLoadingContext.get().getModEventBus()','EventBus.create()','ModBus.get()'],a:1},
+{q:'MOD_ID 常量的好处是什么？',opts:['加快运行速度','避免手写字符串出错','自动注册物品','生成贴图'],a:1},
+{q:'assets/mymod/lang/ 目录放什么？',opts:['代码','贴图','语言翻译文件','配置'],a:2},
+{q:'data/mymod/recipes/ 放什么？',opts:['贴图','翻译','合成配方','代码'],a:2},
+{q:'mods.toml 中 dependencies 的作用是？',opts:['定义模组版本','声明模组依赖关系','注册物品','设置贴图路径'],a:1}
 ]},
 
 {id:13,title:'事件系统',phase:3,phaseName:'Forge 核心',
-content:'<h2>📡 EventBus 事件总线</h2><pre><code class="language-java">// 在主类构造方法中注册\nMinecraftForge.EVENT_BUS.register(this);\n\n// 监听玩家受伤事件\n@SubscribeEvent\npublic void onPlayerHurt(LivingHurtEvent event) {\n    LivingEntity entity = event.getEntity();\n    if (entity instanceof Player) {\n        float damage = event.getAmount();\n        event.setAmount(damage * 0.5f);  // 伤害减半\n    }\n}</code></pre>',
+content:'<h2>📡 EventBus 事件总线</h2><p>Forge 的事件系统是模组开发的核心机制。它让你无需修改原版代码，就能在游戏的各种关键时刻「插入」自定义逻辑。</p><div class="mc"><h3>🎮 类比</h3><p>事件总线就像一个<strong>公告板</strong>：游戏在特定时刻「贴出」事件（比如玩家受伤），你的模组「订阅」感兴趣的事件，Forge 就会自动通知你。你不需要知道游戏内部怎么运作，只需要说：「嘿，玩家受伤时叫我一声。」</div><pre><code class="language-java">// 在主类构造方法中注册\nMinecraftForge.EVENT_BUS.register(this);\n\n// 监听玩家受伤事件\n@SubscribeEvent\npublic void onPlayerHurt(LivingHurtEvent event) {\n    LivingEntity entity = event.getEntity();\n    if (entity instanceof Player) {\n        float damage = event.getAmount();\n        event.setAmount(damage * 0.5f);  // 伤害减半\n    }\n}</code></pre>'+
+
+'<h2>🔀 事件总线类型</h2><p>Forge 有两条主要的事件总线，用途不同：</p>'+
+
+'<table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">事件总线</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">获取方式</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">用途</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><strong>Forge 主总线</strong></td><td style="padding:0.5rem;border:1px solid var(--border)"><code>MinecraftForge.EVENT_BUS</code></td><td style="padding:0.5rem;border:1px solid var(--border)">游戏事件：受伤、方块破坏、物品拾取等</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><strong>Mod 总线</strong></td><td style="padding:0.5rem;border:1px solid var(--border)"><code>FMLJavaModLoadingContext.get().getModEventBus()</code></td><td style="padding:0.5rem;border:1px solid var(--border)">模组生命周期：注册物品/方块/实体、配置加载等</td></tr></tbody></table>'+
+
+'<div class="mc"><h3>🎮 类比</h3><p><strong>Forge 主总线</strong> = 世界频道：所有玩家都能听到游戏事件。<br><strong>Mod 总线</strong> = 私聊频道：只有模组自己的注册事件（比如物品注册、配置变更）。<br>注册到错误的总线上 = 在世界频道发私聊消息，没人会收到！</div>'+
+
+'<pre><code class="language-java">// 获取两条事件总线\nIEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();\nIEventBus forgeBus = MinecraftForge.EVENT_BUS;\n\n// Mod 总线：注册物品/方块（生命周期事件）\nModItems.ITEMS.register(modBus);    // 物品注册 → Mod 总线\nModBlocks.BLOCKS.register(modBus);  // 方块注册 → Mod 总线\n\n// Forge 主总线：监听游戏事件\nforgeBus.register(this);            // 游戏事件 → Forge 总线</code></pre>'+
+
+'<h2>⚡ @SubscribeEvent 详解</h2><p><code>@SubscribeEvent</code> 是标记事件监听方法的核心注解。</p>'+
+
+'<h3>方法签名规则</h3><ul><li>必须是 <code>public</code> 方法</li><li>有且仅有<strong>一个参数</strong>：事件对象</li><li>返回值必须是 <code>void</code></li></ul>'+
+
+'<h3>两种注册方式</h3><pre><code class="language-java">// 方式一：实例方法 + 手动注册\nclass MyEvents {\n    @SubscribeEvent\n    public void onHurt(LivingHurtEvent event) {  // 实例方法\n        event.setAmount(event.getAmount() * 0.5f);\n    }\n}\n// 在主类构造函数中手动注册\nMinecraftForge.EVENT_BUS.register(new MyEvents());\n\n// 方式二：静态方法 + @Mod.EventBusSubscriber 自动注册\n@Mod.EventBusSubscriber(modid = "mymod", bus = Bus.FORGE)\nclass AutoEvents {\n    @SubscribeEvent\n    public static void onHurt(LivingHurtEvent event) {  // 静态方法\n        event.setAmount(event.getAmount() * 0.5f);\n    }\n}\n// 无需手动 register！Forge 自动发现并注册</code></pre>'+
+
+'<div class="mc"><h3>🎮 类比</h3><p>实例方法 = 你亲自到公告板前贴纸条（手动 register）。<br>静态方法 + @Mod.EventBusSubscriber = 你提前告诉 Forge「有事往我家信箱投」（自动注册）。</div>'+
+
+'<h2>🎯 事件优先级与取消</h2>'+
+
+'<h3>优先级（priority）</h3><p>当多个模组监听同一事件时，Forge 按优先级顺序依次执行：</p><table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">优先级</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">顺序</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">说明</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>HIGHEST</code></td><td style="padding:0.5rem;border:1px solid var(--border)">1（最先执行）</td><td style="padding:0.5rem;border:1px solid var(--border)">拦截或修改事件</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>HIGH</code></td><td style="padding:0.5rem;border:1px solid var(--border)">2</td><td style="padding:0.5rem;border:1px solid var(--border)">优先处理</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>NORMAL</code></td><td style="padding:0.5rem;border:1px solid var(--border)">3（默认）</td><td style="padding:0.5rem;border:1px solid var(--border)">一般处理</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>LOW</code></td><td style="padding:0.5rem;border:1px solid var(--border)">4</td><td style="padding:0.5rem;border:1px solid var(--border)">低优先级处理</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>LOWEST</code></td><td style="padding:0.5rem;border:1px solid var(--border)">5（最后执行）</td><td style="padding:0.5rem;border:1px solid var(--border)">最终兜底</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>MONITOR</code></td><td style="padding:0.5rem;border:1px solid var(--border)">6</td><td style="padding:0.5rem;border:1px solid var(--border)"><strong>只读监视</strong>，不能修改事件</td></tr></tbody></table>'+
+
+'<h3>事件取消</h3><p>如果事件类标注了 <code>@Cancelable</code>，你可以在监听器中调用 <code>event.setCanceled(true)</code> 来阻止事件发生。</p>'+
+
+'<pre><code class="language-java">// 高优先级拦截：阻止玩家在下界破坏方块\n@SubscribeEvent(priority = EventPriority.HIGHEST)\npublic void onBlockBreak(BlockEvent.BreakEvent event) {\n    if (event.getPlayer().level().dimension() == Level.NETHER) {\n        event.setCanceled(true);  // 取消破坏事件\n        event.getPlayer().displayClientMessage(\n            Component.literal("下界不允许破坏方块！"), true\n        );\n    }\n}\n\n// MONITOR 优先级：只读记录，不能修改事件\n@SubscribeEvent(priority = EventPriority.MONITOR)\npublic void onDamageMonitor(LivingHurtEvent event) {\n    // 只能读取，不能调用 setAmount / setCanceled\n    System.out.println("伤害记录：" + event.getAmount());\n}</code></pre>'+
+
+'<h2>📋 常用 Forge 事件列表</h2><table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">事件类</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">触发时机</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">用途</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>LivingHurtEvent</code></td><td style="padding:0.5rem;border:1px solid var(--border)">实体受伤前</td><td style="padding:0.5rem;border:1px solid var(--border)">修改伤害值、添加护甲逻辑</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>BlockEvent.BreakEvent</code></td><td style="padding:0.5rem;border:1px solid var(--border)">方块被破坏</td><td style="padding:0.5rem;border:1px solid var(--border)">拦截破坏、自定义掉落物</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>EntityItemPickupEvent</code></td><td style="padding:0.5rem;border:1px solid var(--border)">拾取物品</td><td style="padding:0.5rem;border:1px solid var(--border)">拦截拾取、自定义拾取逻辑</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>PlayerInteractEvent</code></td><td style="padding:0.5rem;border:1px solid var(--border)">玩家交互（右键等）</td><td style="padding:0.5rem;border:1px solid var(--border)">自定义交互行为</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>LivingDeathEvent</code></td><td style="padding:0.5rem;border:1px solid var(--border)">实体死亡</td><td style="padding:0.5rem;border:1px solid var(--border)">拦截死亡、自定义死亡逻辑</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>TickEvent.PlayerTickEvent</code></td><td style="padding:0.5rem;border:1px solid var(--border)">每 tick 触发</td><td style="padding:0.5rem;border:1px solid var(--border)">持续效果（buff、计时器）</td></tr></tbody></table>'+
+'<div class="mc"><h3>🎮 提示</h3><p>事件名后面带 <code>Pre</code> 的通常是「事前事件」（可取消），带 <code>Post</code> 的是「事后事件」（通常只读）。比如 <code>LivingHurtEvent</code> 在伤害计算前触发，适合修改；<code>LivingDeathEvent</code> 在死亡时触发，可用来阻止死亡。</div>',
 quizzes:[
 {q:'@SubscribeEvent 标记的方法会被谁调用？',opts:['手动调用','Forge 自动调用','玩家调用','Java 虚拟机'],a:1},
 {q:'MinecraftForge.EVENT_BUS.register(this) 的作用是？',opts:['注册物品','注册事件监听器','注册方块','注册网络'],a:1},
 {q:'LivingHurtEvent 什么时候触发？',opts:['玩家移动','实体受伤','方块被破坏','物品被捡起'],a:1},
 {q:'event.setAmount(0) 会怎样？',opts:['报错','伤害变为 0（无敌）','伤害翻倍','无效果'],a:1},
 {q:'事件监听方法必须是什么访问修饰符？',opts:['private','protected','public','默认'],a:2},
-{q:'一个类可以监听多个事件吗？',opts:['不可以','可以，多个 @SubscribeEvent 方法','只能两个','看情况'],a:1}
+{q:'一个类可以监听多个事件吗？',opts:['不可以','可以，多个 @SubscribeEvent 方法','只能两个','看情况'],a:1},
+{q:'注册物品/方块的生命周期事件应该用哪条总线？',opts:['MinecraftForge.EVENT_BUS','FMLJavaModLoadingContext.get().getModEventBus()','两条都可以','不需要总线'],a:1},
+{q:'MONITOR 优先级的特点是？',opts:['最先执行','只能读取事件，不能修改','可以取消事件','和其他优先级一样'],a:1}
 ]},
 
 {id:14,title:'注册系统',phase:3,phaseName:'Forge 核心',
-content:'<h2>📝 DeferredRegister 延迟注册</h2><pre><code class="language-java">// 物品注册\nclass ModItems {\n    public static final DeferredRegister&lt;Item&gt; ITEMS =\n        DeferredRegister.create(ForgeRegistries.ITEMS, MyMod.MOD_ID);\n\n    public static final RegistryObject&lt;Item&gt; RUBY =\n        ITEMS.register("ruby", () -> new Item(new Item.Properties()));\n}\n\n// 在主类中注册到事件总线\nModItems.ITEMS.register(bus);</code></pre>',
+content:'<h2>📝 为什么需要注册</h2><p>在 Minecraft 模组开发中，<strong>不注册 = 游戏不知道你的物品/方块存在</strong>。你创建了一个红宝石物品的 Java 类，但如果不告诉 Minecraft "嘿，我有个新物品"，游戏里就完全看不到它。</p><div class="mc"><strong>MC 类比：</strong>注册就像给新物品办身份证。没有身份证的物品在 Minecraft 世界里就是"隐形人"——代码存在，但游戏完全无视它。</div><p>每个注册项都需要一个唯一的<strong>注册名</strong>，使用 <code>ResourceLocation</code> 格式：<code>modid:item_id</code>。</p><table style="width:100%;border-collapse:collapse;margin:12px 0"><tr style="background:#2a2a4a"><th style="border:1px solid #555;padding:8px;text-align:left">部分</th><th style="border:1px solid #555;padding:8px;text-align:left">含义</th><th style="border:1px solid #555;padding:8px;text-align:left">示例</th></tr><tr style="background:#1e1e3a"><td style="border:1px solid #555;padding:8px"><code>modid</code></td><td style="border:1px solid #555;padding:8px">你的模组 ID（全局唯一）</td><td style="border:1px solid #555;padding:8px"><code>mymod</code></td></tr><tr style="background:#2a2a4a"><td style="border:1px solid #555;padding:8px"><code>item_id</code></td><td style="border:1px solid #555;padding:8px">物品/方块的唯一标识</td><td style="border:1px solid #555;padding:8px"><code>ruby</code></td></tr><tr style="background:#1e1e3a"><td style="border:1px solid #555;padding:8px">完整名称</td><td style="border:1px solid #555;padding:8px">modid + 冒号 + id</td><td style="border:1px solid #555;padding:8px"><code>mymod:ruby</code></td></tr></table><div class="mc"><strong>MC 类比：</strong>ResourceLocation 就像身份证号——<code>modid</code> 是你的省份代码，<code>item_id</code> 是你的个人编号，合起来全球唯一。</div><h2>🔧 DeferredRegister 详解</h2><p><code>DeferredRegister</code> 是 Forge 推荐的注册方式。它<strong>自动处理注册时机</strong>，让你不用手动监听事件、不用担心注册顺序。</p><h3>物品注册示例</h3><pre><code class="language-java">// 物品注册类 — 集中管理所有自定义物品
+class ModItems {
+    // 创建物品类型的 DeferredRegister，指定注册表和模组 ID
+    public static final DeferredRegister&lt;Item&gt; ITEMS =
+        DeferredRegister.create(ForgeRegistries.ITEMS, MyMod.MOD_ID);
+
+    // 注册一个名为 "ruby" 的物品，Supplier 创建物品实例
+    // Item.Properties() 定义物品的基本属性（堆叠数量、稀有度等）
+    public static final RegistryObject&lt;Item&gt; RUBY =
+        ITEMS.register("ruby", () -> new Item(new Item.Properties()));
+
+    // 注册一个食物物品，设置饥饿值和饱和度
+    public static final RegistryObject&lt;Item&gt; MAGIC_APPLE =
+        ITEMS.register("magic_apple", () -> new Item(
+            new Item.Properties()      // 创建属性构建器
+                .food(new FoodProperties.Builder()  // 设置为食物
+                    .nutrition(6)       // 饥饿值恢复 6
+                    .saturationMod(0.8F)// 饱和度系数 0.8
+                    .build()            // 构建食物属性
+                )                       // 结束 food 设置
+        ));                             // 结束 Supplier lambda
+}</code></pre><div class="mc"><strong>MC 类比：</strong>DeferredRegister 就像一个"待办清单"——你先写下要注册的物品，等游戏准备好时 Forge 会自动帮你完成注册，你不用操心时机。</div><h3>方块注册示例</h3><pre><code class="language-java">// 方块注册类 — 集中管理所有自定义方块
+class ModBlocks {
+    // 创建方块类型的 DeferredRegister
+    public static final DeferredRegister&lt;Block&gt; BLOCKS =
+        DeferredRegister.create(ForgeRegistries.BLOCKS, MyMod.MOD_ID);
+
+    // 注册 "ruby_ore" 方块 — 使用 BlockBehaviour.Properties 定义方块属性
+    public static final RegistryObject&lt;Block&gt; RUBY_ORE =
+        BLOCKS.register("ruby_ore", () -> new Block(
+            BlockBehaviour.Properties.of()       // 创建方块属性
+                .mapColor(MapColor.STONE)         // 地图上显示石头颜色
+                .requiresCorrectToolForDrops()    // 需要正确工具才能掉落
+                .strength(3.0F, 3.0F)             // 硬度 3.0，爆炸抗性 3.0
+                .sound(SoundType.STONE)           // 石头音效
+        ));
+
+    // 方块还需要注册对应的物品形式（否则无法在背包中显示）
+    public static final RegistryObject&lt;Item&gt; RUBY_ORE_ITEM =
+        ModItems.ITEMS.register("ruby_ore",
+            () -> new BlockItem(RUBY_ORE.get(),    // 关联方块对象
+                new Item.Properties()));            // 物品属性
+}</code></pre><div class="mc"><strong>MC 类比：</strong>方块和物品是两回事——方块是放在世界里的积木，物品是拿在手上的东西。同一个东西（如钻石矿石）需要同时注册方块形态和物品形态。</div><h3>BlockEntity 注册示例</h3><pre><code class="language-java">// 方块实体注册类 — 用于需要存储数据或逻辑的方块
+class ModBlockEntities {
+    // 创建 BlockEntityType 的 DeferredRegister
+    public static final DeferredRegister&lt;BlockEntityType&lt;?&gt;&gt; BLOCK_ENTITIES =
+        DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MyMod.MOD_ID);
+
+    // 注册方块实体类型
+    // BlockEntityType.Builder.of() 指定：方块实体类 + 关联的方块
+    public static final RegistryObject&lt;BlockEntityType&lt;RubyChestBlockEntity&gt;&gt; RUBY_CHEST =
+        BLOCK_ENTITIES.register("ruby_chest",
+            () -> BlockEntityType.Builder.of(      // 创建 Builder
+                RubyChestBlockEntity::new,          // 方块实体的构造方法引用
+                ModBlocks.RUBY_ORE.get()            // 关联的方块（可多个）
+            ).build(null));                         // build 并传入 null（Forge 会自动设置）
+}</code></pre><h2>📦 RegistryObject 使用</h2><p><code>RegistryObject</code> 是一个<strong>延迟引用</strong>——它是注册完成后才能使用的"占位符"。在注册完成前，RegistryObject 不持有任何实际对象。</p><p><strong>核心规则：</strong></p><ul><li>✅ 始终通过 <code>RegistryObject</code> 引用注册的对象</li><li>✅ 在需要时调用 <code>.get()</code> 获取实际对象</li><li>❌ 不要直接存储注册对象的引用（会导致 null）</li><li>❌ 不要在注册完成前调用 <code>.get()</code></li></ul><pre><code class="language-java">// ✅ 正确用法 — 通过 RegistryObject 延迟获取
+@SubscribeEvent
+public static void onItemUse(ItemUseEvent event) {
+    // .get() 在注册完成后才返回实际对象
+    Item ruby = ModItems.RUBY.get();
+    if (event.getItemStack().getItem() == ruby) {
+        // 处理红宝石使用逻辑
+    }
+}
+
+// ❌ 错误用法 — 在类加载时直接获取（注册还未完成！）
+class BadExample {
+    // 这行在 mod 加载时就执行，此时注册还没完成 → NullPointerException!
+    static Item ruby = ForgeRegistries.ITEMS.getValue(
+        new ResourceLocation("mymod", "ruby"));
+}</code></pre><div class="mc"><strong>MC 类比：</strong>RegistryObject 就像外卖订单号——你下了单（注册），拿到订单号（RegistryObject），等外卖做好了（注册完成），才能用订单号去取餐（.get()）。如果厨房还没开门你就去取餐，当然拿不到东西！</div><h2>🔄 注册时机</h2><p>Minecraft 的注册使用 <code>RegisterEvent</code> 生命周期事件。不同的注册表（物品、方块、实体等）在不同的时间点触发对应的 RegisterEvent。</p><p><strong>好消息：</strong> <code>DeferredRegister</code> 自动为你处理时机问题——它会在正确的 RegisterEvent 触发时自动注册你的对象。</p><p>你只需要做一件事：<strong>在主类构造方法中调用 <code>.register(bus)</code></strong>：</p><pre><code class="language-java">// 主类 — 模组入口
+@Mod(MyMod.MOD_ID)
+public class MyMod {
+    public MyMod() {
+        // 获取模组事件总线
+        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        // 将各注册表挂载到事件总线 — DeferredRegister 会自动处理注册时机
+        ModItems.ITEMS.register(bus);           // 物品注册
+        ModBlocks.BLOCKS.register(bus);         // 方块注册
+        ModBlockEntities.BLOCK_ENTITIES.register(bus); // 方块实体注册
+
+        // 可选：监听模组事件
+        bus.addListener(this::onCommonSetup);
+    }
+
+    // 通用初始化（所有注册完成后触发）
+    private void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            // 在这里做需要在注册完成后执行的初始化工作
+        });
+    }
+}</code></pre><div class="mc"><strong>MC 类比：</strong>register(bus) 就像把你的"待办清单"（DeferredRegister）交给 Forge 的"办事大厅"（事件总线）。Forge 会在合适的时间窗口自动帮你把所有待办事项办完，你只需要确保清单交上去了就行。</div><h2>🏋️ 练习</h2><p><strong>练习 1：物品注册</strong> — 补全代码，创建一个模组物品注册表，注册一个名为 "sapphire" 的蓝宝石物品：</p><pre><code class="language-java">// TODO: 补全以下代码
+class ModItems {
+    // 1. 创建 DeferredRegister，注册表类型为 Item，模组 ID 为 "tutorialmod"
+    public static final DeferredRegister&lt;Item&gt; ITEMS =
+        DeferredRegister.create(______, ______);
+
+    // 2. 注册名为 "sapphire" 的物品，使用默认属性
+    public static final RegistryObject&lt;Item&gt; SAPPHIRE =
+        ITEMS.register("______", () -> new Item(______));
+}</code></pre><details><summary>💡 参考答案</summary><pre><code class="language-java">class ModItems {
+    public static final DeferredRegister&lt;Item&gt; ITEMS =
+        DeferredRegister.create(ForgeRegistries.ITEMS, "tutorialmod");
+
+    public static final RegistryObject&lt;Item&gt; SAPPHIRE =
+        ITEMS.register("sapphire", () -> new Item(new Item.Properties()));
+}</code></pre></details><p><strong>练习 2：方块注册</strong> — 注册一个方块 "copper_block" 并关联物品形式：</p><pre><code class="language-java">// TODO: 补全代码
+class ModBlocks {
+    // 1. 创建方块的 DeferredRegister
+    public static final DeferredRegister&lt;Block&gt; BLOCKS =
+        DeferredRegister.create(______, ______);
+
+    // 2. 注册方块，设置硬度为 2.0
+    public static final RegistryObject&lt;Block&gt; COPPER_BLOCK =
+        BLOCKS.register("copper_block", () -> new Block(
+            BlockBehaviour.Properties.of().strength(______)));
+
+    // 3. 注册对应的物品形式（提示：使用 BlockItem）
+    public static final RegistryObject&lt;Item&gt; COPPER_BLOCK_ITEM =
+        ModItems.ITEMS.register("copper_block",
+            () -> new BlockItem(______, new Item.Properties()));
+}</code></pre><details><summary>💡 参考答案</summary><pre><code class="language-java">class ModBlocks {
+    public static final DeferredRegister&lt;Block&gt; BLOCKS =
+        DeferredRegister.create(ForgeRegistries.BLOCKS, "tutorialmod");
+
+    public static final RegistryObject&lt;Block&gt; COPPER_BLOCK =
+        BLOCKS.register("copper_block", () -> new Block(
+            BlockBehaviour.Properties.of().strength(2.0F)));
+
+    public static final RegistryObject&lt;Item&gt; COPPER_BLOCK_ITEM =
+        ModItems.ITEMS.register("copper_block",
+            () -> new BlockItem(COPPER_BLOCK.get(), new Item.Properties()));
+}</code></pre></details>',
 quizzes:[
 {q:'RegistryObject 的作用是？',opts:['直接创建对象','延迟获取注册的对象','删除对象','修改对象'],a:1},
 {q:'ITEMS.register("ruby", ...) 中 "ruby" 是？',opts:['类名','物品 ID','变量名','方法名'],a:1},
 {q:'注册物品后还需要做什么？',opts:['什么都不用','在主类中 register 到事件总线','手动创建对象','删除旧物品'],a:1},
 {q:'DeferredRegister.create 的第一个参数是？',opts:['模组 ID','注册表类型','物品类','事件总线'],a:1},
 {q:'new Item.Properties() 的作用是？',opts:['创建物品','定义物品属性','注册物品','删除物品'],a:1},
-{q:'RegistryObject 的 .get() 方法返回什么？',opts:['注册表','实际的物品对象','字符串','布尔值'],a:1}
+{q:'RegistryObject 的 .get() 方法返回什么？',opts:['注册表','实际的物品对象','字符串','布尔值'],a:1},
+{q:'ResourceLocation 的标准格式是？',opts:['item_id:modid','modid:item_id','modid/item_id','item_id/modid'],a:1},
+{q:'为什么不能在类加载时直接从注册表获取对象？',opts:['语法错误','注册还未完成，会得到 null','性能太差','Forge 不允许'],a:1}
 ]},
 
 {id:15,title:'Capability 系统',phase:3,phaseName:'Forge 核心',
-content:'<h2>🔋 Capability（能力系统）</h2><p>Capability 让你给任何实体附加额外数据，比如自定义能量、mana 等。</p><pre><code class="language-java">// 定义一个能力接口\npublic interface IMana {\n    int getMana();\n    void setMana(int mana);\n    void addMana(int amount);\n}\n\n// 实现\npublic class ManaCapability implements IMana {\n    private int mana = 0;\n    public int getMana() { return mana; }\n    public void setMana(int m) { this.mana = m; }\n    public void addMana(int a) { this.mana += a; }\n}</code></pre>',
+content:'<h2>🔋 什么是 Capability</h2><p>Capability（能力系统）让你给任何实体、方块、物品<strong>附加自定义数据</strong>，而不用修改原版类。</p><div class="mc"><h3>🎮 MC 类比</h3><ul><li>Capability 像给实体<strong>穿装备</strong>——原本实体没有这些数据，但你可以"附加"上去</li><li>玩家本身没有 mana 属性，但通过 Capability 可以给每个玩家"装上"一个 mana 槽</li><li>就像 Curios 给实体加饰品栏一样，Capability 给实体加数据栏</li></ul></div>'+
+'<h2>📋 定义 Capability</h2><p>先定义一个接口（能力的"形状"），再写一个实现类（能力的"数据容器"）。</p><pre><code class="language-java">// 第一步：定义能力接口——规定能力有哪些方法\npublic interface IMana {\n    int getMana();           // 获取当前 mana\n    void setMana(int mana);  // 设置 mana\n    void addMana(int amount);// 增加 mana\n}\n\n// 第二步：实现接口——真正存储数据的类\npublic class ManaCapability implements IMana {\n    private int mana = 0;    // 存储 mana 值\n\n    @Override\n    public int getMana() { return mana; }\n\n    @Override\n    public void setMana(int m) { this.mana = m; }\n\n    @Override\n    public void addMana(int a) { this.mana += a; }\n}</code></pre>'+
+'<h2>🔗 注册与绑定</h2><p>定义好接口和实现后，需要把能力<strong>绑定</strong>到实体上。这分三步：注册 Capability 对象 → 监听实体创建事件 → 绑定能力实例。</p><pre><code class="language-java">// 第一步：在模组主类中注册 Capability 对象\npublic class MyMod {\n    // 创建 Capability 实例（泛型参数是接口类型）\n    public static final Capability&lt;IMana&gt; MANA_CAP =\n        CapabilityManager.get(new CapabilityToken&lt;&gt;() {});\n\n    public MyMod() {\n        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();\n        // 注册到事件总线\n        bus.register(this);\n    }\n}\n\n// 第二步：监听实体创建事件，绑定能力\npublic class ModCapabilities {\n    // 用 @SubscribeEvent 监听 AttachCapabilitiesEvent\n    @SubscribeEvent\n    public static void onAttachCapabilities(\n            AttachCapabilitiesEvent&lt;Entity&gt; event) {\n        // 只对玩家绑定\n        if (event.getObject() instanceof Player) {\n            // 创建能力提供者（把接口和实现关联）\n            ICapabilityProvider provider =\n                CapabilityProvider.from(() -> new ManaCapability());\n            // 注册能力到这个实体\n            event.addCapability(\n                new ResourceLocation("mymod", "mana"),\n                provider\n            );\n        }\n    }\n}</code></pre>'+
+'<h2>🎯 使用 Capability</h2><p>能力绑定后，通过 <code>entity.getCapability()</code> 获取。注意返回的是 <code>LazyOptional</code>——一种"可能有也可能没有"的容器。</p><pre><code class="language-java">// 获取能力并使用（推荐方式）\nentity.getCapability(MyMod.MANA_CAP).ifPresent(mana -> {\n    // 只有能力存在时才会执行\n    mana.addMana(10);              // 增加 10 mana\n    System.out.println(mana.getMana()); // 打印当前值\n});\n\n// 安全获取，带默认值\nint currentMana = entity.getCapability(MyMod.MANA_CAP)\n    .orElse(new ManaCapability())  // 如果没有能力，返回默认对象\n    .getMana();                     // 从默认对象取值\n\n// 判断是否有能力\nif (entity.getCapability(MyMod.MANA_CAP).isPresent()) {\n    // 有能力\n}\n\n// 实际用法示例：右键使用物品消耗 mana\n@SubscribeEvent\npublic void onRightClick(ItemStackClicked event) {\n    Player player = event.getEntity();\n    player.getCapability(MyMod.MANA_CAP).ifPresent(mana -> {\n        if (mana.getMana() >= 5) {\n            mana.addMana(-5);  // 消耗 5 mana\n            // 执行技能效果\n        }\n    });\n}</code></pre>'+
+'<div class="mc"><h3>💡 LazyOptional 为什么要"懒加载"</h3><ul><li>不是每个实体都有你注册的能力——只有绑定过的才有</li><li><code>LazyOptional</code> 强制你用 <code>ifPresent()</code> 或 <code>orElse()</code> 处理"没有能力"的情况</li><li>避免 <code>NullPointerException</code>——比直接返回 null 更安全</li></ul></div>',
 quizzes:[
 {q:'Capability 系统的作用是？',opts:['注册物品','给实体附加自定义数据','渲染模型','播放声音'],a:1},
 {q:'自定义 Capability 需要先定义什么？',opts:['类','接口','变量','常量'],a:1},
 {q:'AttachCapabilitiesEvent 什么时候触发？',opts:['玩家登录','实体创建时','方块被破坏','物品被捡起'],a:1},
 {q:'Capability 适合存储什么数据？',opts:['方块位置','玩家自定义属性（如 mana）','物品名称','模组版本'],a:1},
 {q:'LazyOptional 的作用是？',opts:['直接获取值','安全地获取可能不存在的能力','删除能力','创建能力'],a:1},
-{q:'自定义 Capability 需要注册吗？',opts:['不需要','需要，在主类中注册','需要在 mods.toml 中注册','需要在 build.gradle 中注册'],a:1}
+{q:'自定义 Capability 需要注册吗？',opts:['不需要','需要，在主类中注册','需要在 mods.toml 中注册','需要在 build.gradle 中注册'],a:1},
+{q:'`entity.getCapability(CAP).ifPresent(m -> ...)` 中 ifPresent 的作用是？',opts:['强制执行','只有能力存在时才执行 lambda','删除能力','创建能力'],a:1},
+{q:'`LazyOptional.orElse(默认值)` 的作用是？',opts:['删除能力','如果能力不存在则返回默认值','设置能力','注册能力'],a:1}
 ]},
 
 {id:16,title:'网络同步',phase:3,phaseName:'Forge 核心',
@@ -624,7 +906,7 @@ function renderSidebar(){
 function resetProgress(){if(confirm('确定要重置所有学习进度吗？')){localStorage.removeItem(PROGRESS_KEY);currentLesson=0;renderSidebar();renderLesson()}}
 
 // ── Render Lesson ──
-function goLesson(idx){currentLesson=idx;saveProgress();renderSidebar();renderLesson();setTimeout(function(){var c=COURSE[currentLesson];restoreAIQuizzes(c.id);restoreAICodefix(c.id);initCodefixEditors(c.id);if(c.quizzes){for(var i=0;i<c.quizzes.length;i++)restoreQuizState(c.id,i)}if(c.practice)restorePracticeState(c.id)},100)}
+function goLesson(idx){currentLesson=idx;saveProgress();renderSidebar();renderLesson();window.scrollTo(0,0);setTimeout(function(){var c=COURSE[currentLesson];restoreAIQuizzes(c.id);restoreAICodefix(c.id);initCodefixEditors(c.id);if(c.quizzes){for(var i=0;i<c.quizzes.length;i++)restoreQuizState(c.id,i)}if(c.practice)restorePracticeState(c.id)},100)}
 
 function renderLesson(){
     var c=COURSE[currentLesson],m=document.getElementById('main');
@@ -835,23 +1117,52 @@ function restoreAICodefix(lid){var saved=loadAICodefix(lid);if(!saved.length)ret
 function aiCodefixGen(lid){var c=COURSE[lid-1],area=document.getElementById('codefixArea'+lid),ld=document.createElement('div');ld.id='aiCodefixLoading';ld.className='ai-status';ld.textContent='⏳ AI 正在出题...';area.appendChild(ld);var existingQ=c.codefix.map(function(cf){return cf.prompt}).join('\n');aiCall([{role:'system',content:AI_CONFIG.quizGenPrompt.replace('选择题','改错练习题')+'\nJSON：[{"prompt":"题目","buggy":"错误代码","fixed":"正确代码","hint":"提示","review":"解析"}]'},{role:'user',content:'第'+lid+'课「'+c.title+'」\n内容：'+c.content.replace(/<[^>]+>/g,'').substring(0,600)+'\n\n已有：\n'+existingQ}],function(result,err){var l=document.getElementById('aiCodefixLoading');if(l)l.remove();if(err){area.innerHTML+='<div style="color:var(--accent3);font-size:0.85rem">❌ '+err+'</div>';return}try{var questions=JSON.parse(result.match(/\[[\s\S]*\]/)[0]);questions.forEach(function(q){q.ai=true});saveAICodefix(lid,questions);questions.forEach(function(q){c.codefix.push(q)});var tp=Math.ceil(c.codefix.length/3);codefixPages[lid]=tp-1;renderCodefixPage(lid)}catch(ex){area.innerHTML+='<div style="color:var(--accent3);font-size:0.85rem">❌ 解析失败</div>'}})}
 
 // ── AI Integration ──
+var QA_STREAM_ENABLED=true,QA_SEARCH_ENABLED=false;
 function detectProtocol(url){if(/anthropic/i.test(url))return'anthropic';return'openai'}
 function normalizeUrl(url,proto){if(proto==='anthropic'){if(!/\/v1\/messages\/?$/.test(url)){url=url.replace(/\/+$/,'');if(!/\/v1$/.test(url))url+='/v1';url+='/messages'}return url}if(!/\/chat\/completions\/?$/.test(url)){url=url.replace(/\/+$/,'');if(!/\/v1$/.test(url))url+='/v1';url+='/chat/completions'}return url}
 function getHeaders(key,proto){if(proto==='anthropic')return{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'};return{'Content-Type':'application/json','Authorization':'Bearer '+key}}
-function buildRequestBody(proto,model,msgs){if(proto==='anthropic'){var sys='',user=[];msgs.forEach(function(m){if(m.role==='system')sys+=m.content+'\n';else user.push({role:m.role,content:m.content})});var body={model:model,messages:user};if(sys.trim())body.system=sys.trim();return body}return{model:model,messages:msgs}}
+function buildRequestBody(proto,model,msgs,stream){if(proto==='anthropic'){var sys='',user=[];msgs.forEach(function(m){if(m.role==='system')sys+=m.content+'\n';else user.push({role:m.role,content:m.content})});var body={model:model,messages:user,max_tokens:16384};if(sys.trim())body.system=sys.trim();return body}var body={model:model,messages:msgs};if(stream)body.stream=true;return body}
 function extractReply(proto,data){if(proto==='anthropic'){if(data.content&&data.content[0]&&data.content[0].text)return data.content[0].text;return null}if(data.choices&&data.choices[0]&&data.choices[0].message){var msg=data.choices[0].message;if(msg.content&&msg.content.trim())return msg.content;if(msg.reasoning_content&&msg.reasoning_content.trim())return'[思考过程]\n'+msg.reasoning_content+'\n\n[提示] 正式回答被截断，请重试';if(data.choices[0].finish_reason==='length')return null;return null}return null}
 
 function aiCall(messages,callback){
     if(!CFG.url||!CFG.key){callback(null,'请先在右上角 ⚙️ 设置中配置 API');return}
-    var proto=detectProtocol(CFG.url),finalUrl=normalizeUrl(CFG.url,proto),headers=getHeaders(CFG.key,proto),body=buildRequestBody(proto,CFG.model||'mimo-v2.5-pro',messages);
+    var proto=detectProtocol(CFG.url),finalUrl=normalizeUrl(CFG.url,proto),headers=getHeaders(CFG.key,proto),body=buildRequestBody(proto,CFG.model||'mimo-v2.5-pro',messages,false);
     fetch(finalUrl,{method:'POST',headers:headers,body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(d){var reply=extractReply(proto,d);if(reply)callback(reply,null);else if(d.error)callback(null,'API 错误：'+(d.error.message||JSON.stringify(d.error)));else callback(null,'API 返回异常：'+JSON.stringify(d).substring(0,500))}).catch(function(e){callback(null,'请求失败：'+e.message)})
+}
+
+function aiCallStream(messages,onChunk,onDone){
+    if(!CFG.url||!CFG.key){onDone('请先在右上角 ⚙️ 设置中配置 API');return}
+    var proto=detectProtocol(CFG.url),finalUrl=normalizeUrl(CFG.url,proto),headers=getHeaders(CFG.key,proto),body=buildRequestBody(proto,CFG.model||'mimo-v2.5-pro',messages,true);
+    fetch(finalUrl,{method:'POST',headers:headers,body:JSON.stringify(body)}).then(function(response){
+        if(!response.ok){response.text().then(function(t){onDone('HTTP '+response.status+': '+t.substring(0,200))});return}
+        var reader=response.body.getReader(),decoder=new TextDecoder(),buffer='',reasoning='',content='';
+        function read(){reader.read().then(function(result){
+            if(result.done){onDone(null,reasoning,content);return}
+            buffer+=decoder.decode(result.value,{stream:true});
+            var lines=buffer.split('\n');buffer=lines.pop();
+            lines.forEach(function(line){
+                line=line.trim();if(!line||!line.startsWith('data:'))return;
+                var data=line.substring(5).trim();if(data==='[DONE]')return;
+                try{
+                    var json=JSON.parse(data);
+                    if(json.choices&&json.choices[0]){
+                        var delta=json.choices[0].delta||{};
+                        if(delta.reasoning_content){reasoning+=delta.reasoning_content;onChunk('reasoning',delta.reasoning_content,reasoning,content)}
+                        if(delta.content){content+=delta.content;onChunk('content',delta.content,reasoning,content)}
+                    }
+                }catch(e){}
+            });
+            read();
+        }).catch(function(e){onDone('读取失败：'+e.message)})}
+        read();
+    }).catch(function(e){onDone('请求失败：'+e.message)})
 }
 
 // ── AI Quiz ──
 var aiQuizPages={};
 function saveAIQuizzes(lid,q){var p=loadProgress();p.aiQuizzes=p.aiQuizzes||{};p.aiQuizzes[lid]=(p.aiQuizzes[lid]||[]).concat(q);localStorage.setItem(PROGRESS_KEY,JSON.stringify(p))}
 function loadAIQuizzes(lid){var p=loadProgress();return(p.aiQuizzes&&p.aiQuizzes[lid])||[]}
-function restoreAIQuizzes(lid){var saved=loadAIQuizzes(lid);if(!saved.length)return;var c=COURSE[lid-1];saved.forEach(function(q){c.quizzes.push(q)});renderAIQuizPage(lid)}
+function restoreAIQuizzes(lid){var saved=loadAIQuizzes(lid);if(!saved.length)return;var c=COURSE[lid-1];var baseCount=c.quizzes.length-saved.length;if(baseCount<0)baseCount=0;c.quizzes.length=baseCount;saved.forEach(function(q){c.quizzes.push(q)});renderAIQuizPage(lid)}
 function cleanOpt(text){return text.replace(/^[A-Da-d0-9][\.\)）、]\s*/,'')}
 function renderQuizItem(lid,qi,q){var html='<div class="qq" id="q'+lid+'_'+qi+'"><p><strong>Q'+(qi+1)+(q.ai?' [AI]':'')+':</strong> '+mdInline(q.q)+'</p><div class="qo">';q.opts.forEach(function(opt,oi){html+='<button>'+String.fromCharCode(65+oi)+'. '+mdInline(cleanOpt(opt))+'</button>'});html+='</div><div class="qf" id="qf'+lid+'_'+qi+'"></div></div>';return html}
 
@@ -913,7 +1224,161 @@ function renderQuickBtns(){var el=document.getElementById('qaQuick'),html='';AI_
 
 function qaRenderMessages(){var box=document.getElementById('qaMessages'),conv=qaConversations[qaCurrentConv];if(!conv||!conv.messages.length){box.innerHTML='<div class="qa-msg ai" style="font-size:0.85rem;color:var(--text-muted)">你好！有什么问题可以问我。</div>';return}var html='';conv.messages.forEach(function(m){var type=m.role==='user'?'user':'ai';html+='<div class="qa-msg '+(type==='ai'?'ai':'user')+'">'+(type==='ai'?md(m.content):esc(m.content))+'</div>'});box.innerHTML=html;box.querySelectorAll('pre code').forEach(function(b){b.innerHTML=hl(b.textContent)});box.scrollTop=box.scrollHeight}
 
-function qaAsk(){var input=document.getElementById('qaInput'),q=input.value.trim();if(!q)return;input.value='';var conv=qaConversations[qaCurrentConv];conv.messages.push({role:'user',content:q});if(conv.messages.length===1)conv.title=q.substring(0,20);qaSave();qaAddMsg(q,'user');qaAddMsg('⏳ 思考中...','ai',true);var c=COURSE[currentLesson],context='用户正在学习第'+c.id+'课「'+c.title+'」';var skillCtx=getSkillContext();var apiMsgs=[{role:'system',content:AI_CONFIG.qaSystemPrompt+skillCtx}];conv.messages.forEach(function(m){apiMsgs.push({role:m.role,content:m.content})});apiMsgs[apiMsgs.length-1]={role:'user',content:context+'\n\n问题：'+q};aiCall(apiMsgs,function(result,err){qaRemoveLoading();if(err){qaAddMsg('❌ '+err,'ai');return}conv.messages.push({role:'assistant',content:result});qaSave();qaAddMsg(result,'ai')})}
+function qaAsk(){
+    var input=document.getElementById('qaInput'),q=input.value.trim();if(!q)return;input.value='';
+    var conv=qaConversations[qaCurrentConv];conv.messages.push({role:'user',content:q});
+    if(conv.messages.length===1)conv.title=q.substring(0,20);qaSave();qaAddMsg(q,'user');
+    var c=COURSE[currentLesson],context='用户正在学习第'+c.id+'课「'+c.title+'」';
+    var skillCtx=getSkillContext();
+    var sysPrompt=AI_CONFIG.qaSystemPrompt+skillCtx;
+    var apiMsgs=[{role:'system',content:sysPrompt}];
+    conv.messages.forEach(function(m){apiMsgs.push({role:m.role,content:m.content})});
+    apiMsgs[apiMsgs.length-1]={role:'user',content:context+'\n\n问题：'+q};
+
+    var urls=extractUrls(q);
+    var needSearch=QA_SEARCH_ENABLED;
+    var needFetch=urls.length>0;
+
+    if(needFetch){
+        qaAddMsg('🔗 正在抓取网页...','ai',true);
+        fetchWebPages(urls,function(pageResults){
+            qaRemoveLoading();
+            var extra='';
+            if(pageResults)extra+='\n\n[网页内容]\n'+pageResults;
+            if(needSearch){
+                qaAddMsg('🔍 正在搜索...','ai',true);
+                webSearch(q,function(searchResults){
+                    qaRemoveLoading();
+                    if(searchResults)extra+='\n\n[搜索结果]\n'+searchResults;
+                    apiMsgs[apiMsgs.length-1]={role:'user',content:context+extra+'\n\n问题：'+q};
+                    sendToAI(conv,apiMsgs);
+                });
+            }else{
+                apiMsgs[apiMsgs.length-1]={role:'user',content:context+extra+'\n\n问题：'+q};
+                sendToAI(conv,apiMsgs);
+            }
+        });
+    }else if(needSearch){
+        qaAddMsg('🔍 正在搜索...','ai',true);
+        webSearch(q,function(searchResults){
+            qaRemoveLoading();
+            if(searchResults)apiMsgs[apiMsgs.length-1]={role:'user',content:context+'\n\n[搜索结果]\n'+searchResults+'\n\n问题：'+q};
+            sendToAI(conv,apiMsgs);
+        });
+    }else{
+        sendToAI(conv,apiMsgs);
+    }
+}
+
+function sendToAI(conv,apiMsgs){
+    if(QA_STREAM_ENABLED){qaStreamReply(conv,apiMsgs)}else{qaSendNormal(conv,apiMsgs)}
+}
+
+function extractUrls(text){var regex=/https?:\/\/[^\s<>"')\]]+/g;var matches=text.match(regex);return matches?matches.slice(0,3):[]}
+
+function fetchWebPages(urls,callback){
+    var results=[],done=0;
+    urls.forEach(function(url){
+        fetchWebPage(url,function(text,err){
+            if(text)results.push('【'+url+'】\n'+text);
+            done++;
+            if(done>=urls.length){callback(results.length>0?results.join('\n\n'):null)}
+        });
+    });
+}
+
+function fetchWebPage(url,callback){
+    var proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
+    fetch(proxy).then(function(r){return r.text()}).then(function(html){
+        var text=htmlToText(html);
+        if(text.length>8000)text=text.substring(0,8000)+'\n...(内容过长，已截断)';
+        callback(text,null);
+    }).catch(function(e){callback(null,'抓取失败：'+e.message)})
+}
+
+function htmlToText(html){
+    var tmp=document.createElement('div');
+    tmp.innerHTML=html;
+    tmp.querySelectorAll('script,style,noscript,iframe,svg,head').forEach(function(el){el.remove()});
+    var text=tmp.textContent||tmp.innerText||'';
+    text=text.replace(/\s+/g,' ').replace(/\n\s*\n/g,'\n').trim();
+    return text;
+}
+
+function qaSendNormal(conv,apiMsgs){
+    qaAddMsg('⏳ 思考中...','ai',true);
+    aiCall(apiMsgs,function(result,err){qaRemoveLoading();if(err){qaAddMsg('❌ '+err,'ai');return}conv.messages.push({role:'assistant',content:result});qaSave();qaAddMsg(result,'ai')})
+}
+
+function webSearch(query,callback){
+    var url='https://api.duckduckgo.com/?q='+encodeURIComponent(query)+'&format=json&no_html=1&skip_disambig=1&no_redirect=1';
+    fetch(url).then(function(r){return r.json()}).then(function(data){
+        var results=[];
+        if(data.Abstract&&data.Abstract.trim()){results.push('摘要：'+data.Abstract+(data.AbstractSource?' (来源：'+data.AbstractSource+')':''))}
+        if(data.AbstractURL){results.push('参考链接：'+data.AbstractURL)}
+        if(data.RelatedTopics&&data.RelatedTopics.length>0){
+            var topics=[];
+            data.RelatedTopics.slice(0,5).forEach(function(t){
+                if(t.Text)topics.push('- '+t.Text+(t.FirstURL?' ('+t.FirstURL+')':''));
+                if(t.Topics)t.Topics.slice(0,3).forEach(function(st){if(st.Text)topics.push('  - '+st.Text)});
+            });
+            if(topics.length)results.push('相关主题：\n'+topics.join('\n'));
+        }
+        if(data.Definition&&data.Definition.trim()){results.push('定义：'+data.Definition+(data.DefinitionSource?' (来源：'+data.DefinitionSource+')':''))}
+        if(results.length>0){callback(results.join('\n\n'),null)}
+        else{callback(null,'未找到相关结果')}
+    }).catch(function(e){callback(null,'搜索失败：'+e.message)})
+}
+
+function qaStreamReply(conv,apiMsgs){
+    var box=document.getElementById('qaMessages');
+    var msgDiv=document.createElement('div');msgDiv.className='qa-msg ai';
+    var thinkingDiv=document.createElement('div');thinkingDiv.className='qa-thinking';thinkingDiv.style.display='none';
+    var thinkingLabel=document.createElement('div');thinkingLabel.className='qa-thinking-label';thinkingLabel.textContent='💭 思考中...';
+    thinkingLabel.onclick=function(){var body=thinkingDiv.querySelector('.qa-thinking-body');if(body)body.classList.toggle('show');thinkingLabel.classList.toggle('open')};
+    var thinkingBody=document.createElement('div');thinkingBody.className='qa-thinking-body';
+    thinkingDiv.appendChild(thinkingLabel);thinkingDiv.appendChild(thinkingBody);
+    var contentDiv=document.createElement('div');contentDiv.className='qa-stream-content';contentDiv.innerHTML='<span style="color:var(--text-muted);font-size:0.85rem">⏳ 生成中...</span>';
+    msgDiv.appendChild(thinkingDiv);msgDiv.appendChild(contentDiv);
+    box.appendChild(msgDiv);box.scrollTop=box.scrollHeight;
+    var reasoning='',content='',started=false;
+    aiCallStream(apiMsgs,
+        function(type,delta,rFull,cFull){
+            if(!started){started=true;contentDiv.innerHTML=''}
+            if(type==='reasoning'){
+                reasoning=rFull;thinkingDiv.style.display='block';
+                thinkingLabel.textContent='💭 思考中... ('+reasoning.length+'字)';
+                thinkingBody.innerHTML=md(reasoning);
+                box.scrollTop=box.scrollHeight;
+            }
+            if(type==='content'){
+                content=cFull;contentDiv.innerHTML=md(content);
+                contentDiv.querySelectorAll('pre code').forEach(function(b){b.innerHTML=hl(b.textContent)});
+                box.scrollTop=box.scrollHeight;
+            }
+        },
+        function(err,rFinal,cFinal){
+            if(err){contentDiv.innerHTML='<span style="color:var(--accent3)">❌ '+esc(err)+'</span>';return}
+            if(rFinal)thinkingLabel.textContent='💭 思考完成 ('+rFinal.length+'字)';
+            if(cFinal){conv.messages.push({role:'assistant',content:cFinal});qaSave()}
+            else if(rFinal&&!cFinal){contentDiv.innerHTML='<span style="color:var(--text-muted)">💭 思考完成但未生成回答，请重试</span>'}
+            box.scrollTop=box.scrollHeight;
+        }
+    );
+}
+
+function qaToggleStream(){
+    QA_STREAM_ENABLED=!QA_STREAM_ENABLED;
+    var btn=document.getElementById('qaStreamToggle');
+    btn.classList.toggle('active',QA_STREAM_ENABLED);
+    btn.textContent=QA_STREAM_ENABLED?'⚡ 流式':'⚡ 非流式';
+}
+function qaToggleSearch(){
+    QA_SEARCH_ENABLED=!QA_SEARCH_ENABLED;
+    var btn=document.getElementById('qaSearchToggle');
+    btn.classList.toggle('active',QA_SEARCH_ENABLED);
+    btn.textContent=QA_SEARCH_ENABLED?'🔍 联网':'🔍 离线';
+}
 
 function qaQuick(q){document.getElementById('qaInput').value=q;qaAsk()}
 function qaAddMsg(text,type,isLoading){var box=document.getElementById('qaMessages'),div=document.createElement('div');div.className='qa-msg '+(type==='user'?'user':'ai');if(isLoading)div.id='qaLoading';if(type==='ai'){div.innerHTML=md(text);div.querySelectorAll('pre code').forEach(function(b){b.innerHTML=hl(b.textContent)})}else{div.textContent=text}box.appendChild(div);box.scrollTop=box.scrollHeight}
