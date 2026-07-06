@@ -74,6 +74,82 @@ var AI_CONFIG = {
 };
 ```
 
+## AI 高级功能
+
+模板内置三个 AI 增强功能，通过 QA 面板顶部的开关按钮控制：
+
+### 流式输出（⚡ 流式）
+
+AI 回答逐字显示，不等待全部生成。使用 SSE（Server-Sent Events）实现：
+
+```javascript
+// 请求体加 stream: true
+body.stream = true;
+
+// 用 ReadableStream 逐块读取
+var reader = response.body.getReader();
+// 解析 data: 前缀的 SSE 行
+// delta.reasoning_content → 思考过程
+// delta.content → 正式回答
+```
+
+**注意**：`aiCallStream` 是独立函数，不要修改原有的 `aiCall`（出题、改错等功能仍用非流式）。
+
+### 思考过程可见（💭）
+
+MiMo 模型会先输出 `reasoning_content`（思考链），再输出 `content`（正式回答）。
+
+实现方式：
+- 流式过程中，`reasoning_content` 实时显示在折叠区域
+- 点击「💭 思考中...」可展开/收起
+- 显示字数统计
+
+CSS 样式：
+```css
+.qa-thinking { background: rgba(155,142,196,0.06); border: 1px dashed var(--lavender); }
+.qa-thinking-label { cursor: pointer; }  /* 点击展开 */
+.qa-thinking-body { display: none; }     /* 默认折叠 */
+.qa-thinking-body.show { display: block; }
+```
+
+### 联网搜索（🔍 联网）
+
+使用 DuckDuckGo API（免费、支持 CORS）实现真正的搜索：
+
+```javascript
+// 搜索前：调用 API
+var url = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(query) + '&format=json';
+// 解析：摘要、相关主题、定义、链接
+// 注入到发送给 AI 的上下文中
+```
+
+### 网页抓取（自动检测 URL）
+
+用户问题中包含 URL 时，自动抓取网页内容：
+
+```javascript
+// 检测 URL
+var urls = extractUrls(question);  // 正则提取 http(s):// 链接
+
+// 通过 CORS 代理抓取
+var proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+
+// 提取纯文本（去 script/style 等），截取前 8000 字
+var text = htmlToText(html);
+```
+
+**最多同时抓取 3 个 URL**，避免请求过多。
+
+### 优先级逻辑
+
+```
+有 URL？→ 抓取网页
+  ↓
+开了联网？→ 搜索
+  ↓
+合并上下文 → 发送给 AI（流式/非流式）
+```
+
 ## COURSE[] 课程数据
 
 每课结构：
