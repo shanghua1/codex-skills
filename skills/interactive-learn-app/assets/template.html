@@ -487,7 +487,55 @@ quizzes:[
 {q:'@SubscribeEvent 放在哪里？',opts:['类上面','方法上面','变量上面','包上面'],a:1},
 {q:'mods.toml 文件放在哪个目录？',opts:['java/','resources/META-INF/','assets/','data/'],a:1},
 {q:'模组的中文翻译放在哪里？',opts:['java/','mods.toml','assets/modid/lang/zh_cn.json','data/'],a:2}
-]}
+]},
+
+// ── Phase 5：基础知识 ──
+{id:18,title:'Forge 模组文件结构详解',phase:5,phaseName:'基础知识',
+content:'<h2>📁 一个 Forge 模组长什么样</h2><p>当你用 MDK（Forge 官方模板）创建项目后，会看到这样的目录结构：</p><pre><code class="language-java">mymod/                          // 项目根目录\n├── build.gradle                // 构建配置文件（Gradle）\n├── gradle.properties           // Gradle 属性配置\n├── settings.gradle             // 项目名称设置\n├── gradlew                     // Gradle Wrapper（Linux/Mac）\n├── gradlew.bat                 // Gradle Wrapper（Windows）\n├── gradle/                     // Gradle Wrapper 的 jar 包\n│   └── wrapper/\n└── src/main/\n    ├── java/                   // Java 源代码目录\n    │   └── com/example/mymod/\n    │       └── MyMod.java      // 模组主类\n    └── resources/              // 资源文件目录\n        ├── META-INF/\n        │   └── mods.toml       // 模组「身份证」\n        ├── pack.mcmeta          // 资源包版本声明\n        └── assets/mymod/       // 客户端资源\n            ├── lang/           // 语言文件\n            ├── textures/       // 贴图\n            └── models/         // 模型文件</code></pre>'+
+
+'<h2>🐘 Gradle — 项目构建工具</h2><p>Gradle 是 Java 世界的「包管理器 + 构建工具」，类似 npm、pip。Forge 模组用它来管理依赖和打包。</p><div class="mc"><h3>🎮 类比</h3><ul><li>Gradle 就像一个<strong>自动化工厂</strong>：你告诉它原料在哪（依赖），它帮你组装成成品（jar 包）</li><li><code>build.gradle</code> 就是工厂的<strong>生产说明书</strong></li><li><code>gradlew</code> 就是工厂的<strong>启动按钮</strong></li></ul></div>'+
+
+'<h3>核心文件说明</h3><table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.94rem"><thead><tr><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">文件</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">作用</th><th style="padding:0.5rem;border:1px solid var(--border);background:rgba(91,138,114,0.06);color:var(--accent)">你需要改吗</th></tr></thead><tbody>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>build.gradle</code></td><td style="padding:0.5rem;border:1px solid var(--border)">定义依赖、版本、打包规则</td><td style="padding:0.5rem;border:1px solid var(--border)">偶尔（加依赖时）</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>gradle.properties</code></td><td style="padding:0.5rem;border:1px solid var(--border)">项目属性（版本号、MC 版本等）</td><td style="padding:0.5rem;border:1px solid var(--border)">是（改版本号）</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>settings.gradle</code></td><td style="padding:0.5rem;border:1px solid var(--border)">项目名称</td><td style="padding:0.5rem;border:1px solid var(--border)">创建时改一次</td></tr>'+
+'<tr><td style="padding:0.5rem;border:1px solid var(--border)"><code>gradlew</code></td><td style="padding:0.5rem;border:1px solid var(--border)">Gradle Wrapper 启动脚本</td><td style="padding:0.5rem;border:1px solid var(--border)">不需要</td></tr></tbody></table>'+
+
+'<h3>常用 Gradle 命令</h3><pre><code class="language-java">gradlew build              // 编译打包，生成 jar 文件\ngradlew runClient          // 启动 Minecraft 测试客户端\ngradlew runServer          // 启动 Minecraft 测试服务器\ngradlew genEclipseRuns      // 生成 Eclipse IDE 运行配置\ngradlew genIntellijRuns     // 生成 IntelliJ IDEA 运行配置\ngradlew clean              // 清除构建缓存</code></pre>'+
+
+'<h2>📄 mods.toml — 模组的身份证</h2><p>这个文件告诉 Forge「我是谁、我需要什么」。路径：<code>src/main/resources/META-INF/mods.toml</code></p><pre><code class="language-java">modLoader="javafml"             // 使用 Java FML 加载器\nloaderVersion="[47,)"           // Forge 版本要求（47+）\nlicense="MIT"                   // 开源许可证\n\n[[mods]]                        // 模组信息块（可以有多个）\nmodId="mymod"                   // 模组唯一 ID（和主类 @Mod 一致）\nversion="1.0.0"                 // 版本号\ndisplayName="我的模组"           // 显示名称\ndescription="""                 // 模组描述（三引号多行）\n  这是一个示例模组\n"""\n\n[[dependencies.mymod]]          // 依赖声明\n  modId="forge"                 // 依赖的模组 ID\n  mandatory=true                // 是否必须\n  versionRange="[47,)"          // 版本范围\n  ordering="NONE"               // 加载顺序\n  side="BOTH"                   // 客户端/服务端/双端</code></pre>'+
+
+'<h2>🏷️ 主类 — 模组的入口</h2><p>每个模组必须有一个用 <code>@Mod</code> 注解标记的主类，它是模组的入口点：</p><pre><code class="language-java">@Mod("mymod")                   // 必须和 mods.toml 的 modId 一致\npublic class MyMod {\n    public static final String MOD_ID = "mymod";\n\n    public MyMod() {            // 构造函数 = 模组启动时执行\n        IEventBus bus = FMLJavaModLoadingContext\n            .get().getModEventBus();\n        // 在这里注册物品、方块、事件等\n    }\n}</code></pre>',
+
+quizzes:[]},
+
+{id:19,title:'免责声明',phase:5,phaseName:'基础知识',
+content:'<h2>⚠️ 免责声明</h2>'+
+'<div style="background:rgba(199,92,92,0.04);border:1.5px solid var(--accent3);border-radius:10px;padding:1.2rem 1.5rem;margin:1rem 0">'+
+'<h3 style="color:var(--accent3);margin-top:0">📋 关于本页面</h3>'+
+'<ul><li>本页面内容<strong>由 AI 自动生成</strong>，仅供参考学习使用</li>'+
+'<li>内容参考了相关 Skill 知识库及公开网络资源，<strong>不对其准确性、完整性作任何保证</strong></li>'+
+'<li>本页面为<strong>个人学习辅助工具</strong>，非官方出品，与 Mojang、Forge 团队无关</li></ul></div>'+
+
+'<div style="background:rgba(155,142,196,0.04);border:1.5px solid var(--lavender);border-radius:10px;padding:1.2rem 1.5rem;margin:1rem 0">'+
+'<h3 style="color:var(--accent2);margin-top:0">🔍 遇到问题时</h3>'+
+'<ul><li>优先查阅 <a href="https://docs.minecraftforge.net" target="_blank" style="color:var(--accent)">Forge 官方文档</a></li>'+
+'<li>参考 <a href="https://mcforge.readthedocs.io" target="_blank" style="color:var(--accent)">Forge 社区教程</a></li>'+
+'<li>在 <a href="https://github.com/MinecraftForge/MinecraftForge/issues" target="_blank" style="color:var(--accent)">GitHub Issues</a> 搜索类似问题</li>'+
+'<li>向有经验的模组开发者请教</li></ul></div>'+
+
+'<div style="background:rgba(91,138,114,0.04);border:1.5px solid var(--sage);border-radius:10px;padding:1.2rem 1.5rem;margin:1rem 0">'+
+'<h3 style="color:var(--accent);margin-top:0">🚀 从零开始的建议路径</h3>'+
+'<ol><li><strong>安装 JDK 17</strong> — Forge 1.20.x 需要 Java 17</li>'+
+'<li><strong>下载 Forge MDK</strong> — 从 <a href="https://files.minecraftforge.net" target="_blank" style="color:var(--accent)">Forge 官网</a> 下载对应版本的 MDK</li>'+
+'<li><strong>解压并导入 IDE</strong> — 用 IntelliJ IDEA 打开项目，等待 Gradle 同步</li>'+
+'<li><strong>运行 gradlew runClient</strong> — 启动测试客户端，确认环境正常</li>'+
+'<li><strong>开始修改代码</strong> — 从第 1 课开始学习，逐步添加功能</li></ol></div>'+
+
+'<div style="margin-top:1.5rem;padding:1rem;background:var(--bg);border-radius:8px;font-size:0.88rem;color:var(--text-muted)">'+
+'<p style="margin:0">💡 <strong>学习建议</strong>：本页面的 17 节课程覆盖了从 Java 基础到模组开发的核心知识。建议按顺序学习，每课做完测验和练习后再进入下一课。遇到不懂的地方，可以使用右侧的 AI 问答助手。</p></div>',
+
+quizzes:[]}
 ];
 
 // ============================================================
